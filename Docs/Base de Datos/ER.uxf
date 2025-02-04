@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLUseCase</id>
+    <coordinates>
+      <x>380</x>
+      <y>170</y>
+      <w>250</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>ObjetoBD
+--
+*id : Int*
+creado : Date
+ultMod : Date
+estado : ACTIVO,INACTIVO
+tipo : String</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>120</x>
+      <y>160</y>
+      <w>240</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Todos los modelos
+deben extender de
+ObjetoBD, todas las
+tablas de los modelos
+deben ser hijas de ObjetoBD</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLUseCase</id>
+    <coordinates>
+      <x>380</x>
+      <y>470</y>
+      <w>250</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>Usuario
+--
+*id : ObjetoBD.id*
+*Usuraio : String*
+contra : String</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>310</y>
+      <w>90</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1
+Extiende</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLUseCase</id>
+    <coordinates>
+      <x>830</x>
+      <y>470</y>
+      <w>250</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>Rol
+--
+*id : Int*
+nombre : String</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLUseCase</id>
+    <coordinates>
+      <x>830</x>
+      <y>730</y>
+      <w>250</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>Permiso
+--
+*id : Int*
+nombre : String</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>950</x>
+      <y>610</y>
+      <w>60</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1..*
+m2=1..*
+Tiene</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>620</x>
+      <y>520</y>
+      <w>230</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1..*
+m2=1..*
+Tiene</panel_attributes>
+    <additional_attributes>10.0;20.0;210.0;20.0</additional_attributes>
+  </element>
+</diagram>
