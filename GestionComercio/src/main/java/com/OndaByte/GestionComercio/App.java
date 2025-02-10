@@ -29,7 +29,11 @@ public class App {
         // FIN config Log4j del archivo XML
         logger.debug("Init Server");  
        
-        Javalin app = Javalin.create().start(4567);
+        Javalin app = Javalin.create(config -> {
+                config.bundledPlugins.enableCors(cors -> {
+                        cors.addRule(x -> {x.anyHost();});
+                    });
+            }).start(4567);
 
         // Rutas protegidas
         app.before("/protegido/*", FiltroAutenticador::filtro);

@@ -44,10 +44,11 @@ public class ProductoControl{
     }
 
     public static void modificar(Context ctx)  {
-        String id = ctx.pathParam("id");
 		try(Connection con = DAOSql2o.getSql2o().beginTransaction()) {
 			DAOProducto dao = new DAOProducto(con);
 			Producto nuevo;
+            
+            String id = ctx.pathParam("id");
 			nuevo = objectMapper.readValue(ctx.body(), Producto.class);
 			nuevo.setId(Integer.parseInt(id));
 			if (dao.modificar(nuevo)){
