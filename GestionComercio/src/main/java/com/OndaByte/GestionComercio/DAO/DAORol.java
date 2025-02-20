@@ -13,9 +13,8 @@ import com.OndaByte.GestionComercio.modelo.Rol;
  * DAORol
  */
 public class DAORol extends ABMDAO<Rol> {
-    public DAORol(Connection con) {
-		super(con);
-		//TODO Auto-generated constructor stub
+    public DAORol() {
+		super();
 	}
 
 	private String clave = "id";
@@ -33,11 +32,14 @@ public class DAORol extends ABMDAO<Rol> {
     public List<Permiso> getPermisosUsuario(int id){
 		String query = "SELECT Permiso.* FROM UsuarioRol ur JOIN RolPermiso rp ON rp.rol_id = ur.rol_id JOIN Permiso ON Permiso.id = rp.permiso_id WHERE ur.usuario_id = :id";
 
-        try(Connection con = DAOSql2o.getSql2o().open()){
-            List<Permiso> aux = con.createQuery(query).addParameter("id",id).executeAndFetch(Permiso.class);
+        try{
+            if(this.getConexion() == null){
+                this.setConexion(DAOSql2o.getSql2o().open());
+            }
+            List<Permiso> aux = this.getConexion().createQuery(query).addParameter("id",id).executeAndFetch(Permiso.class);
 			return aux;
         }
-      catch(Exception e) {
+        catch(Exception e) {
             Logger.getLogger(DAORol.class.getName()).log(Level.SEVERE, null, e);
         }
         return null;

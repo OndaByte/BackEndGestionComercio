@@ -6,8 +6,8 @@ import com.OndaByte.GestionComercio.modelo.Producto;
 import com.OndaByte.GestionComercio.util.Log;
 
 public class DAOProducto extends ABMDAO<Producto>{
-    public DAOProducto(Connection con) {
-		super(con);
+    public DAOProducto() {
+		super();
 	}
 
 	private String clave = "id";
@@ -15,7 +15,7 @@ public class DAOProducto extends ABMDAO<Producto>{
 
     public Class<Producto> getClase(){
         return Producto.class;
-    };
+    }
 
     public String getClave(){return this.clave;}
 
@@ -32,5 +32,4 @@ public class DAOProducto extends ABMDAO<Producto>{
         }
         return false;
     }
-    
 }

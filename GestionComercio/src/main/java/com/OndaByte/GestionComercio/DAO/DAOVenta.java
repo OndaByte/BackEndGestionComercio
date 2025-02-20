@@ -7,9 +7,8 @@ import com.OndaByte.GestionComercio.modelo.Venta;
 import com.OndaByte.GestionComercio.util.Log;
 
 public class DAOVenta extends ABMDAO<Venta> {
-	public DAOVenta(Connection con) {
-		super(con);
-		//TODO Auto-generated constructor stub
+	public DAOVenta() {
+		super();
 	}
 
 	private String clave = "id";

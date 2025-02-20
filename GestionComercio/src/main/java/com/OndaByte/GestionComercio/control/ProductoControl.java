@@ -2,24 +2,19 @@ package com.OndaByte.GestionComercio.control;
 import java.util.List;
 
 import com.OndaByte.GestionComercio.DAO.DAOProducto;
-import com.OndaByte.GestionComercio.DAO.DAOSql2o;
 import com.OndaByte.GestionComercio.modelo.Producto;
 import com.OndaByte.GestionComercio.util.Controles;
 import com.OndaByte.GestionComercio.util.Log;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
 
-
-import org.sql2o.Connection;
-
 public class ProductoControl{
 	private static ObjectMapper objectMapper = new ObjectMapper();
 
 	public static void listar(Context ctx) {
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()){
-			DAOProducto dao = new DAOProducto(con);
+		try{
+			DAOProducto dao = new DAOProducto();
 			List<Producto> productos = dao.listar();
-			con.commit();
 			ctx.status(200).json(productos);
 		}
 		catch(Exception e){
@@ -28,14 +23,13 @@ public class ProductoControl{
     }
 
     public static void alta(Context ctx) {
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()) {
-			DAOProducto dao = new DAOProducto(con);
+		try {
+			DAOProducto dao = new DAOProducto();
 			Producto nuevo;
 			nuevo = objectMapper.readValue(ctx.body(), Producto.class);
 			if (dao.alta(nuevo)){
 				ctx.status(201).result("Alta exitosa");
 			}
-			con.commit();
 		}
 		catch(Exception e){
 			Log.log(e,ProductoControl.class);
@@ -44,8 +38,8 @@ public class ProductoControl{
     }
 
     public static void modificar(Context ctx)  {
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()) {
-			DAOProducto dao = new DAOProducto(con);
+		try {
+			DAOProducto dao = new DAOProducto();
 			Producto nuevo;
             
             String id = ctx.pathParam("id");
@@ -54,7 +48,6 @@ public class ProductoControl{
 			if (dao.modificar(nuevo)){
 				ctx.status(201).result("Actualización exitosa");
 			}
-			con.commit();
 		}
 		catch(Exception e){
 			Log.log(e,ProductoControl.class);
@@ -63,13 +56,12 @@ public class ProductoControl{
     }
 
     public static void baja(Context ctx) {		
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()) {
-			DAOProducto dao = new DAOProducto(con);
+		try{
+			DAOProducto dao = new DAOProducto();
 			String id = ctx.pathParam("id");
 			if (dao.baja(id, false)){
 				ctx.status(200).result("Baja exitosa");
 			}
-			con.commit();
 		}
 		catch(Exception e){
 			Log.log(e,ProductoControl.class);
@@ -78,15 +70,14 @@ public class ProductoControl{
     }
 
     public static void sumarStock(Context ctx) {
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()) {
-			DAOProducto dao = new DAOProducto(con);
+		try {
+			DAOProducto dao = new DAOProducto();
 		
 			String id = ctx.pathParam("id");
 			String cant = ctx.queryParam("cant");
 			if (dao.actualizarStock(id,cant)){
 				ctx.status(200).result("Stock actualizado");
 			}
-			con.commit();
 		}
 		catch(Exception e){
 			Log.log(e,ProductoControl.class);

@@ -3,7 +3,6 @@ package com.OndaByte.GestionComercio.control;
 import java.util.List;
 
 import com.OndaByte.GestionComercio.DAO.DAORol;
-import com.OndaByte.GestionComercio.DAO.DAOSql2o;
 import com.OndaByte.GestionComercio.DAO.DAOUsuario;
 import com.OndaByte.GestionComercio.modelo.Usuario;
 import com.OndaByte.GestionComercio.peticiones.LoginPost;
@@ -14,8 +13,7 @@ import io.javalin.http.Context;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,10 +26,9 @@ public class UsuarioControlador {
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static void usuarios(Context ctx) {
-        try (Connection con = DAOSql2o.getSql2o().beginTransaction()) {
-            DAOUsuario dao = new DAOUsuario(con);
+        try {
+            DAOUsuario dao = new DAOUsuario();
             List<Usuario> usuarios = dao.listar();
-            con.commit();
             ctx.status(200).json(usuarios);
         } catch (Exception e) {
             logger.error("Error en UsuarioControlador.usuarios" + e);
@@ -40,7 +37,7 @@ public class UsuarioControlador {
 
     public static void login(Context ctx) {
         LoginPost peticion;
-        try (Connection con = DAOSql2o.getSql2o().beginTransaction()) {
+        try {
             peticion = objectMapper.readValue(ctx.body(), LoginPost.class);
 
             //ESTO TENGO QUE MOVERLO A MANEJADOR DE EXCEPCIONES/CONTROLES
@@ -49,8 +46,8 @@ public class UsuarioControlador {
                 return;
             }
 
-            DAOUsuario dao = new DAOUsuario(con);
-            DAORol daoRol = new DAORol(con);
+            DAOUsuario dao = new DAOUsuario();
+            DAORol daoRol = new DAORol();
             Usuario aux = dao.getUsuario(peticion.getUsuario());
 
             if (aux != null && BCrypt.checkpw(peticion.getContra(), aux.getContra())) {
@@ -58,7 +55,6 @@ public class UsuarioControlador {
             } else {
                 ctx.status(500).result("Error al loguear");
             }
-            con.commit();
         } catch (Exception e) {
             Log.log(e, UsuarioControlador.class);
         }
@@ -75,8 +71,8 @@ public class UsuarioControlador {
             ctx.status(400).result("Usuario y Contraseña requeridos");
         }
 
-        try (Connection con = DAOSql2o.getSql2o().beginTransaction()) {
-            DAOUsuario dao = new DAOUsuario(con);
+        try {
+            DAOUsuario dao = new DAOUsuario();
             Usuario aux = dao.getUsuario(usuario);
             if (BCrypt.checkpw(contra, aux.getContra())) {
                 aux.setContra(BCrypt.hashpw(nueva, BCrypt.gensalt()));
@@ -88,7 +84,6 @@ public class UsuarioControlador {
             } else {
                 ctx.status(500).result("Error al loguear");
             }
-            con.commit();
         } catch (Exception e) {
             Log.log(e, UsuarioControlador.class);
         }
@@ -96,14 +91,14 @@ public class UsuarioControlador {
 
     public static void registrar(Context ctx) {
         LoginPost peticion;
-        try (Connection con = DAOSql2o.getSql2o().beginTransaction()) {
+        try {
             peticion = objectMapper.readValue(ctx.body(), LoginPost.class);
             //ESTO TENGO QUE MOVERLO A MANEJADOR DE EXCEPCIONES/CONTROLES
             if (peticion.getUsuario() == null || peticion.getContra() == null) {
                 ctx.status(400).result("Usuario y Contraseña requeridos");
             }
 
-            DAOUsuario dao = new DAOUsuario(con);
+            DAOUsuario dao = new DAOUsuario();
             Usuario nuevo = new Usuario();
             nuevo.setUsuario(peticion.getUsuario());
             nuevo.setContra(BCrypt.hashpw(peticion.getContra(), BCrypt.gensalt()));
@@ -113,7 +108,6 @@ public class UsuarioControlador {
             } else {
                 ctx.status(500).result("Error al registrar");
             }
-            con.commit();
         } catch (Exception e) {
             Log.log(e, UsuarioControlador.class);
         }
@@ -133,10 +127,9 @@ public class UsuarioControlador {
             return;
         }
 
-        try (Connection con = DAOSql2o.getSql2o().beginTransaction()) {
-            DAOUsuario dao = new DAOUsuario(con);
+        try {
+            DAOUsuario dao = new DAOUsuario();
             boolean resultado = dao.baja(id, Boolean.parseBoolean(borrar));
-            con.commit();
             ctx.status(200).result(String.valueOf(resultado));
         } catch (Exception e) {
             Log.log(e, UsuarioControlador.class);

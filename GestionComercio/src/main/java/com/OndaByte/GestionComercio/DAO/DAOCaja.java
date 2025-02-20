@@ -13,11 +13,10 @@ import org.sql2o.Connection;
 
 public class DAOCaja extends ABMDAO<Caja> {
 
-	public DAOCaja(Connection con) {
-		super(con);
+	public DAOCaja() {
+		super();
 	}
-
-
+    
 	private String clave = "id";
 	
 	public Class<Caja> getClase() {
@@ -30,8 +29,11 @@ public class DAOCaja extends ABMDAO<Caja> {
 
     public Caja getCaja(){		
         String query = "From Cajas C WHERE C.state = 'ACTIVO' AND C.fecha_cierre is null";
-		try(Connection con = DAOSql2o.getSql2o().open()){
-			List<Caja> aux = con.createQuery(query).executeAndFetch(this.getClase());
+		try{
+            if(this.getConexion() == null){
+                this.setConexion(DAOSql2o.getSql2o().open());
+            }
+			List<Caja> aux = this.getConexion().createQuery(query).executeAndFetch(this.getClase());
 			if (aux.isEmpty()) {
 				return null;
 			}
@@ -44,13 +46,16 @@ public class DAOCaja extends ABMDAO<Caja> {
     }
 
     public List<Caja> getCajas(Date fecha1, Date fecha2) {
-		try(Connection con = DAOSql2o.getSql2o().open()){
+		try{
+            if(this.getConexion() == null){
+                this.setConexion(DAOSql2o.getSql2o().open());
+            }
 			if ((fecha1 != null && fecha2 != null) && fecha1.after(fecha2)){
 				throw new IllegalArgumentException("'from' no puede ser mayor a 'to'.\n");
 			}
 
 			String query = "From Cajas C WHERE C.state = 'ACTIVO' AND (:fecha1 IS null OR C.created_at >= :fecha1) AND (:fecha2 IS null OR C.created_at <= :fecha2)";
-			List<Caja> aux = con.createQuery(query)
+			List<Caja> aux = this.getConexion().createQuery(query)
 				.addParameter("fecha1",fecha1)
 				.addParameter("fecha2",fecha2)
 				.executeAndFetch(this.getClase());
@@ -69,14 +74,17 @@ public class DAOCaja extends ABMDAO<Caja> {
     }
 
     public List<ItemCaja> getItems(long id){
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()){
+		try{
+            if(this.getConexion() == null){
+                this.setConexion(DAOSql2o.getSql2o().open());
+            }
 			List<ItemCaja> resul;
 			String query = "FROM Pedidos P WHERE P.caja.id=:id";
-			resul = con.createQuery(query).addParameter("id",id).executeAndFetch(ItemCaja.class);
+			resul = this.getConexion().createQuery(query).addParameter("id",id).executeAndFetch(ItemCaja.class);
 			query = "FROM Movimientos M WHERE M.caja.id=:id";
-			resul.addAll(con.createQuery(query).addParameter("id",id).executeAndFetch(ItemCaja.class));
+			resul.addAll(this.getConexion().createQuery(query).addParameter("id",id).executeAndFetch(ItemCaja.class));
 			query = "FROM Ventas V WHERE V.caja.id=:id";
-			resul.addAll(con.createQuery(query).addParameter("id",id).executeAndFetch(ItemCaja.class));
+			resul.addAll(this.getConexion().createQuery(query).addParameter("id",id).executeAndFetch(ItemCaja.class));
 			return resul;
 		}
 		catch (Exception e){
@@ -86,22 +94,25 @@ public class DAOCaja extends ABMDAO<Caja> {
     }
 
 	public List<ItemCaja> getItems(Date fecha1, Date fecha2, Integer tipo, String pago){
-        try(Connection con = DAOSql2o.getSql2o().beginTransaction()){
+        try{
+            if(this.getConexion() == null){
+                this.setConexion(DAOSql2o.getSql2o().open());
+            }
 			List<ItemCaja> resul;
 			String query = "From Pedidos P WHERE (:fecha1 IS null OR P.created_at >= :fecha1) AND (:fecha2 IS null OR P.created_at <= :fecha2)";
 		
-			resul = con.createQuery(query)
+			resul = this.getConexion().createQuery(query)
 				.addParameter("fecha1",fecha1)
 				.addParameter("fecha2",fecha2)
 				.executeAndFetch(ItemCaja.class);
 			query = "From Movimientos M WHERE (:fecha1 IS null OR M.created_at >= :fecha1) AND (:fecha2 IS null OR M.created_at <= :fecha2)";
 
-			resul.addAll(con.createQuery(query)
+			resul.addAll(this.getConexion().createQuery(query)
 						 .addParameter("fecha1",fecha1)
 						 .addParameter("fecha2",fecha2)
 						 .executeAndFetch(ItemCaja.class));
 			query = "From Ventas V WHERE (:fecha1 IS null OR V.created_at >= :fecha1) AND (:fecha2 IS null OR V.created_at <= :fecha2) AND (:tipo IS null OR V.tipo=:tipo) AND (:pago IS null OR V.metodo_pago=:pago)";
-			resul.addAll(con.createQuery(query)
+			resul.addAll(this.getConexion().createQuery(query)
 						 .addParameter("fecha1",fecha1)
 						 .addParameter("fecha2",fecha2)
 						 .addParameter("tipo",tipo)
@@ -121,8 +132,11 @@ public class DAOCaja extends ABMDAO<Caja> {
 			"WHERE C.fecha_cierre IS NOT null AND " +
 			"C.fecha_cierre= (SELECT MAX(fecha_cierre) FROM Cajas)";
 
-		try(Connection con = DAOSql2o.getSql2o().open()){
-			List<Caja> aux = con.createQuery(query).executeAndFetch(this.getClase());
+		try{
+            if(this.getConexion() == null){
+                this.setConexion(DAOSql2o.getSql2o().open());
+            }
+			List<Caja> aux = this.getConexion().createQuery(query).executeAndFetch(this.getClase());
 			if (aux.isEmpty()) {
 				return null;
 			}
@@ -137,8 +151,11 @@ public class DAOCaja extends ABMDAO<Caja> {
 	
 	public void abrirUltima() {
 		String query = "UPDATE Cajas C SET C.fecha_cierre = NULL WHERE C.id = :id";
-		try(Connection con = DAOSql2o.getSql2o().open()){
-			con.createQuery(query).addParameter("id",this.ultimaCaja().getId()).executeUpdate();
+		try{
+            if(this.getConexion() == null){
+                this.setConexion(DAOSql2o.getSql2o().open());
+            }
+			this.getConexion().createQuery(query).addParameter("id",this.ultimaCaja().getId()).executeUpdate();
 		}
 		catch (Exception e){
 			Log.log(e, DAOCaja.class);

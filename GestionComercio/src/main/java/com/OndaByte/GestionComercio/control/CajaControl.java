@@ -4,10 +4,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-import org.sql2o.Connection;
 
 import com.OndaByte.GestionComercio.DAO.DAOCaja;
-import com.OndaByte.GestionComercio.DAO.DAOSql2o;
 import com.OndaByte.GestionComercio.modelo.Caja;
 import com.OndaByte.GestionComercio.modelo.ItemCaja;
 import com.OndaByte.GestionComercio.util.Log;
@@ -24,9 +22,9 @@ public class CajaControl {
 
 	//AbrirCaja
 	public static void abrirCaja(Context ctx) {
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()){
+		try{
 			Caja n = objectMapper.readValue(ctx.body(), Caja.class);
-			DAOCaja dao = new DAOCaja(con);
+			DAOCaja dao = new DAOCaja();
 			float dinero_inicial = n != null ? n.getDinero_inicial() : 0;
 			Caja cajaAbierta = getCaja(ctx);
 			if(cajaAbierta == null){
@@ -42,9 +40,7 @@ public class CajaControl {
 			}
 			else{
 				ctx.status(409).result("Error: Ya hay una caja abierta del dia.\n");
-			}
-			con.commit();
-			 
+			}			 
 		}catch(Exception e){
 			Log.log(e,CajaControl.class);
 		}
@@ -52,17 +48,15 @@ public class CajaControl {
 	
 	//Caja
     public static Caja getCaja(Context ctx){ //DEVUELVE LA CAJA ABIERTA, SI NO HAY CAJAS ABIERTAS O LA CAJA ABIERTA ES DE OTRO DIA, CIERRA LA CAJA Y DEVUELVE NULL
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()){
-			DAOCaja dao = new DAOCaja(con);
+		try{
+			DAOCaja dao = new DAOCaja();
 			Caja cajaAbierta = dao.getCaja();
 			if(cajaAbierta == null){
 				ctx.status(404).result("No hay caja abierta");
-				con.commit();
 				return null;
 			}
 			else if(!compararFechas(new Date(0),formatter.parse(cajaAbierta.getCreado()))) {
 				dao.cerrarCaja();
-				con.commit();
 				ctx.status(404).result("No hay caja abierta");
 				return null;
 			}
@@ -72,15 +66,13 @@ public class CajaControl {
 			Log.log(e,CajaControl.class);
 		}
 		return null;
-		
     }
 
 	//CerrarCaja
     public static void cerrarCaja(Context ctx){
-        try (Connection con = DAOSql2o.getSql2o().beginTransaction()){
-			DAOCaja dao = new DAOCaja(con);
+        try{
+			DAOCaja dao = new DAOCaja();
             dao.cerrarCaja();
-			con.commit();
             ctx.status(208).result("Caja cerrada con exito.\n");
         } catch (Exception e){
 			ctx.status(404).result("Error interno");
@@ -102,20 +94,19 @@ public class CajaControl {
 				to = formatter.parse(toParam);
 				to = ultimaHora(to);
 			}
-		} catch (ParseException e) {
-			ctx.status(400).result("Fechas invalidas");
-			return;
-		}
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()){
-			DAOCaja dao = new DAOCaja(con);			
+
+            DAOCaja dao = new DAOCaja();			
 			List<Caja> cajas;
 			if (from == null && to == null) {
 				cajas = dao.listar();
 			} else {
 				cajas = dao.getCajas(from, to);
 			}
-			con.commit();
 			ctx.json(cajas);
+            
+		} catch (ParseException e) {
+			ctx.status(400).result("Fechas invalidas");
+			return;
 		}
 		catch(Exception e){
 			Log.log(e,CajaControl.class);
@@ -124,11 +115,10 @@ public class CajaControl {
 
 	//Caja/{id}
     public static void getMovimientos(Context ctx){
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()){
-			DAOCaja dao = new DAOCaja(con);
+		try{
+			DAOCaja dao = new DAOCaja();
 			String id = ctx.pathParam("id");
 			ctx.json(dao.getItems(Long.parseUnsignedLong(id)));
-			con.commit();
 		}
 		catch(Exception e){
 			Log.log(e,CajaControl.class);
@@ -161,33 +151,30 @@ public class CajaControl {
 			if (pagoParam != null) {
 				pago = Integer.parseInt(pagoParam);
 			}
+            if (pago != null) {
+                switch (pago) {
+                case 0: pagoV = "Efectivo"; break;
+                case 1: pagoV = "Mercado Pago"; break;
+                case 2: pagoV = "Debito"; break;
+                case 3: pagoV = "Cripto"; break;
+                case 4: pagoV = "Otro"; break;
+                default:
+                    ctx.status(400).result("Pago invalido");
+                    return;
+                }
+            }
+            DAOCaja dao = new DAOCaja();
+			List<ItemCaja> items = dao.getItems(from, to, tipoVenta, pagoV);
+			ctx.json(items);
 		} catch (Exception e) {
 			ctx.status(400).result("Parametros invalidos");
-			return;
-		}
-		if (pago != null) {
-			switch (pago) {
-			case 0: pagoV = "Efectivo"; break;
-			case 1: pagoV = "Mercado Pago"; break;
-			case 2: pagoV = "Debito"; break;
-			case 3: pagoV = "Cripto"; break;
-			case 4: pagoV = "Otro"; break;
-			default:
-				ctx.status(400).result("Pago invalido");
-				return;
-			}
-		}
-		try(Connection con = DAOSql2o.getSql2o().beginTransaction()){
-			DAOCaja dao = new DAOCaja(con);
-			List<ItemCaja> items = dao.getItems(from, to, tipoVenta, pagoV);
-			con.commit();
-			ctx.json(items);
-		}
-		catch(Exception e){
 			Log.log(e,CajaControl.class);
 		}
 	}	
 
+
+    //TODOS ESTOS METODOS TENDRIAN QUE IR EN UNA CLASE DE CONTROLES/MANEJO DE EXCEPCIONES
+    
     public static Date sinHoras(Date d){
         Calendar cal = Calendar.getInstance();
         cal.setTime(d);
@@ -217,7 +204,7 @@ public class CajaControl {
         return (Date) cal.getTime();
     }
 
-	  public static boolean compararFechas(Date fecha1, Date fecha2){
+    public static boolean compararFechas(Date fecha1, Date fecha2){
         Date fecha1Aux = sinHoras(fecha1);
         Date fecha2Aux = sinHoras(fecha2);
         return fecha1Aux.equals(fecha2Aux);
