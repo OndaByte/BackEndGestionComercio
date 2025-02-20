@@ -1,7 +1,7 @@
 package com.OndaByte.GestionComercio;
 import com.OndaByte.GestionComercio.control.CajaControl;
 import com.OndaByte.GestionComercio.control.ProductoControl;
-import com.OndaByte.GestionComercio.control.UsuarioControl;
+import com.OndaByte.GestionComercio.control.UsuarioControlador;
 import com.OndaByte.GestionComercio.filtros.FiltroAutenticador;
 import com.OndaByte.config.Constantes;
 
@@ -37,14 +37,14 @@ public class App {
 
         // Rutas protegidas
         app.before("/protegido/*", FiltroAutenticador::filtro);
-        app.post("/protegido/actualizar", UsuarioControl::cambiarcontra);
-        app.get("/protegido/usuarios", UsuarioControl::usuarios);
-        app.post("/protegido/eliminar", UsuarioControl::baja);
+        app.post("/protegido/actualizar", UsuarioControlador::cambiarcontra);
+        app.get("/protegido/usuarios", UsuarioControlador::usuarios);
+        app.post("/protegido/eliminar", UsuarioControlador::baja);
 
         // Rutas públicas de usuario
-        app.post("/registrar", UsuarioControl::registrar);
-        app.get("/login", UsuarioControl::loginForm);
-        app.post("/login", UsuarioControl::login);
+        app.post("/registrar", UsuarioControlador::registrar);
+        app.get("/login", UsuarioControlador::loginForm);
+        app.post("/login", UsuarioControlador::login);
 
         // Rutas para productos
         app.get("/Productos", ProductoControl::listar);
