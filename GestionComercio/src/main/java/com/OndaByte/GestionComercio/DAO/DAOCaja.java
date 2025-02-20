@@ -9,8 +9,6 @@ import java.util.List;
 
 import com.OndaByte.GestionComercio.util.Log;
 
-import org.sql2o.Connection;
-
 public class DAOCaja extends ABMDAO<Caja> {
 
 	public DAOCaja() {

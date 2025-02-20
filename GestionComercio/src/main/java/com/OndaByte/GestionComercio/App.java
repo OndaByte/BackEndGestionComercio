@@ -60,6 +60,5 @@ public class App {
 		app.get("/Cajas", CajaControl::getCajas);
 		app.get("/Caja/{id}", CajaControl::getMovimientos);
 		app.get("/Transacciones", CajaControl::getMovimientosFechas);
-
     }
 }

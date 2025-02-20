@@ -13,12 +13,9 @@ import io.javalin.http.Context;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import org.sql2o.Connection;
 
 public class UsuarioControlador {
     private static Logger logger = LogManager.getLogger(UsuarioControlador.class.getName());

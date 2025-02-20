@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.sql2o.Connection;
-
 import com.OndaByte.GestionComercio.modelo.Permiso;
 import com.OndaByte.GestionComercio.modelo.Rol;
 

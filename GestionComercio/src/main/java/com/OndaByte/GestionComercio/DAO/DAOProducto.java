@@ -1,7 +1,5 @@
 package com.OndaByte.GestionComercio.DAO;
 
-import org.sql2o.Connection;
-
 import com.OndaByte.GestionComercio.modelo.Producto;
 import com.OndaByte.GestionComercio.util.Log;
 
