@@ -54,23 +54,11 @@ public class DAOUsuario extends ABMDAO<Usuario> {
     }
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     @Override
     public List<Usuario> listar() {
         try {
-            if (logger.isDebugEnabled()) {
-                logger.debug("DAOUsuario.listar");
-            }
+            logger.debug("DAOUsuario.listar");
+            super.con = DAOSql2o.getSql2o().open();
             return super.listar();
         } catch (Sql2oException e) {
             logger.error("Error SQL en DAOUsuario.listar(): " + e.getMessage(), e);
@@ -85,8 +73,6 @@ public class DAOUsuario extends ABMDAO<Usuario> {
             logger.debug("DAOUsuario.close()");
         }
         return null;
-        
-
     }
     
     

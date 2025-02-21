@@ -141,15 +141,6 @@ public abstract class ABMDAO <T> {
     }
 
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
     /**
      * Devulve todos los elementos de tipo T en la bd
      *
@@ -158,26 +149,12 @@ public abstract class ABMDAO <T> {
     public List<T> listar() throws Exception{
         Class c = this.getClase();
         String query = "SELECT * FROM "+ this.getTabla() +" WHERE estado=\"ACTIVO\""; 
+        
         if (logger.isDebugEnabled()) {
             logger.debug("ABMDAO.filtrar - SQL para Filtrar: " + query);
         }
         return con.createQuery(query).executeAndFetch(c);
     }
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     /**
