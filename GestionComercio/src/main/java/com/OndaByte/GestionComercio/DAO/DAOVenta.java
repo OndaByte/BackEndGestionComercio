@@ -2,9 +2,8 @@ package com.OndaByte.GestionComercio.DAO;
 
 import com.OndaByte.GestionComercio.modelo.ItemVenta;
 import com.OndaByte.GestionComercio.modelo.Venta;
-import com.OndaByte.GestionComercio.util.Log;
 
-public class DAOVenta extends ABMDAO<Venta> {
+public class DAOVenta extends GeneradorQuery<Venta> {
 	public DAOVenta() {
 		super();
 	}

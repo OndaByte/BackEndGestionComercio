@@ -4,16 +4,18 @@ import java.util.List;
 
 import com.OndaByte.GestionComercio.DAO.DAORol;
 import com.OndaByte.GestionComercio.DAO.DAOUsuario;
+import com.OndaByte.GestionComercio.modelo.Permiso;
 import com.OndaByte.GestionComercio.modelo.Usuario;
 import com.OndaByte.GestionComercio.peticiones.LoginPost;
 import com.OndaByte.GestionComercio.util.Seguridad;
-import com.OndaByte.GestionComercio.util.Log;
 
 import io.javalin.http.Context;
 
 import org.mindrot.jbcrypt.BCrypt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,13 +34,15 @@ public class UsuarioControlador {
 
     public static void login(Context ctx) {
         logger.debug("UsuarioControlador.login");
-        LoginPost peticion;
+        // LoginPost peticion;
         try {
-            peticion = objectMapper.readValue(ctx.body(), LoginPost.class);
+            //Usuario peticion = ctx.bodyAsClass(Usuario.class);
+            JSONObject bodyJson = new JSONObject(ctx.body());
+            Usuario peticion = new Usuario(bodyJson.getString("user"),bodyJson.getString("pass"));
+            // objectMapper.readValue(ctx.body(), LoginPost.class);
 
-            //ESTO TENGO QUE MOVERLO A MANEJADOR DE EXCEPCIONES/CONTROLES
             if (peticion.getUsuario() == null || peticion.getContra() == null) {
-                ctx.status(400).result("Usuario y contraseña requeridos");
+                ctx.status(400).result(buildRespuesta(400, null, "Formulario incorrecto"));
                 return;
             }
 
@@ -47,12 +51,22 @@ public class UsuarioControlador {
             Usuario aux = dao.getUsuario(peticion.getUsuario());
 
             if (aux != null && BCrypt.checkpw(peticion.getContra(), aux.getContra())) {
-                ctx.status(200).result("{ \"token\" : \"" + Seguridad.getToken(aux.getUsuario()) + "\", \"permisos\" : " + daoRol.getPermisosUsuario(aux.getId()) + "}\n");
+                //Armo el data
+                String token = Seguridad.getToken(aux.getUsuario());
+                List<Permiso> permiso = daoRol.getPermisosUsuario(aux.getId());
+                String mensaje = "Loggeado con èxito";
+                JSONPObject data = new JSONObject();
+                data.put("token", token);
+                data.put("permisos",permiso);
+                ctx.status(200).result(buildRespuesta(200, data.toString(), mensaje));
             } else {
-                ctx.status(500).result("Error al loguear");
+                ctx.status(403).result(buildRespuesta(403, null,"credenciales incorrectas"));
             }
         } catch (Exception e) {
-            logger.error("Error en  UsuarioControlador.login " + e.getMessage());
+            if(ctx!= null){
+                ctx.status(500).result(buildRespuesta(500, null,"Error inesperado"));
+            }
+            logger.error("Error inesperado en UsuarioControlador.login(): " + e.getMessage(), e);
         }
     }
 
@@ -148,7 +162,11 @@ public class UsuarioControlador {
     }
         
     public static String buildRespuesta(String status, String data, String mensaje) {
-        return null;
+        JSONObject respuesta = new JSONObject();
+        respuesta.put("status",status);
+        respuesta.put("data",data);
+        respuesta.put("mensaje",mensaje);
+        return respuesta.toString();
     }
 
 }

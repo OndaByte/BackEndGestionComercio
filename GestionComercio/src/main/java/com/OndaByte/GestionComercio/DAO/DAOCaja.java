@@ -7,9 +7,7 @@ import com.OndaByte.GestionComercio.modelo.ItemCaja;
 import java.util.Date;
 import java.util.List;
 
-import com.OndaByte.GestionComercio.util.Log;
-
-public class DAOCaja extends ABMDAO<Caja> {
+public class DAOCaja extends GeneradorQuery<Caja> implements DAOInterface<Caja> {
 
 	public DAOCaja() {
 		super();
@@ -158,6 +156,42 @@ public class DAOCaja extends ABMDAO<Caja> {
 		catch (Exception e){
 			Log.log(e, DAOCaja.class);
 		}
+	}
+
+	@Override
+	public boolean alta(Caja t) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'alta'");
+	}
+
+	@Override
+	public boolean baja(String id, boolean borrar) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'baja'");
+	}
+
+	@Override
+	public boolean modificar(Caja t) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'modificar'");
+	}
+
+	@Override
+	public List<Caja> listar() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'listar'");
+	}
+
+	@Override
+	public List<Caja> listar(String... ids) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'listar'");
+	}
+
+	@Override
+	public List<Caja> filtrar(List<String> campos, List<String> valores, List<Integer> condiciones) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'filtrar'");
 	}
 
 }
