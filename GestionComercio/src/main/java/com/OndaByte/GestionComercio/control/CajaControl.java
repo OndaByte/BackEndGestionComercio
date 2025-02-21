@@ -8,14 +8,13 @@ import java.util.List;
 import com.OndaByte.GestionComercio.DAO.DAOCaja;
 import com.OndaByte.GestionComercio.modelo.Caja;
 import com.OndaByte.GestionComercio.modelo.ItemCaja;
-import com.OndaByte.GestionComercio.util.Log;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.javalin.http.Context;
 
 
 public class CajaControl {
-
+/*
     private static ObjectMapper objectMapper = new ObjectMapper();
 	private static String dateString = "2025-01-09 21:57:39";
 	private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -209,5 +208,5 @@ public class CajaControl {
         Date fecha2Aux = sinHoras(fecha2);
         return fecha1Aux.equals(fecha2Aux);
     }
-
+*/
 }

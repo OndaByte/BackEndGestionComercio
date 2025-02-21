@@ -4,11 +4,11 @@ import java.util.List;
 import com.OndaByte.GestionComercio.DAO.DAOProducto;
 import com.OndaByte.GestionComercio.modelo.Producto;
 import com.OndaByte.GestionComercio.util.Controles;
-import com.OndaByte.GestionComercio.util.Log;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
 
 public class ProductoControl{
+    /*
 	private static ObjectMapper objectMapper = new ObjectMapper();
 
 	public static void listar(Context ctx) {
@@ -94,5 +94,5 @@ public class ProductoControl{
         if(nuevo.getPrecio_costo() > nuevo.getPrecio_venta()){
             throw new IllegalArgumentException("El costo del producto no puede ser mayor a su precio de venta.");
         }
-    }
+    }*/
 }

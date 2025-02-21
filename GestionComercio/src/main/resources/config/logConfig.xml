@@ -9,8 +9,14 @@
     </File>
     </Appenders>
   <Loggers>
-    <Root level="TRACE">
+    <Logger name="io.javalin" level="INFO" additivity="false">
+        <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.eclipse.jetty" level="INFO" additivity="false">
+        <AppenderRef ref="Console"/>
+    </Logger>
+    <Root level="DEBUG">
       <AppenderRef ref="Console"/>
-    </Root>
+    </Root> 
   </Loggers>
 </Configuration>

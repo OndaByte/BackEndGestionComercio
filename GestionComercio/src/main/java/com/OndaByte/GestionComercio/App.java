@@ -46,7 +46,8 @@ public class App {
         app.get("/login", UsuarioControlador::loginForm);
         app.post("/login", UsuarioControlador::login);
 
-        // Rutas para productos
+/**
+          // Rutas para productos
         app.get("/Productos", ProductoControl::listar);
         app.post("/Productos/Alta", ProductoControl::alta);
         app.patch("/Productos/{id}/SumarStock", ProductoControl::sumarStock); // Cambiado a PATCH por ser actualización parcial
@@ -60,5 +61,6 @@ public class App {
 		app.get("/Cajas", CajaControl::getCajas);
 		app.get("/Caja/{id}", CajaControl::getMovimientos);
 		app.get("/Transacciones", CajaControl::getMovimientosFechas);
+ */
     }
 }

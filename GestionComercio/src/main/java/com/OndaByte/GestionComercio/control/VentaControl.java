@@ -4,7 +4,6 @@ import com.OndaByte.GestionComercio.DAO.*;
 import com.OndaByte.GestionComercio.modelo.*;
 import com.OndaByte.GestionComercio.modelo.Producto;
 import com.OndaByte.GestionComercio.modelo.Venta;
-import com.OndaByte.GestionComercio.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,7 +154,7 @@ public class VentaControl {
 	  // buscar ideas de mecanismo robusto para esto.
 	  }
 
-	  }*/
+	  }
 	
 	public String spaces(int tamCant,int tamSubtotal){
 		String l = "";
@@ -199,5 +198,5 @@ public class VentaControl {
         if (aux != total)
             throw new IllegalArgumentException("El precio total no coincide con los items.");
     }
-	
+	*/
 }

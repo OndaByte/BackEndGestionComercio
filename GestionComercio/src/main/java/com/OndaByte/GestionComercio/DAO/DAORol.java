@@ -39,7 +39,7 @@ public class DAORol extends GeneradorQuery<Rol> implements DAOInterface<Rol> {
         Connection con = null;
 
         try{
-            con = DAOSql2o.getSql2o().open();
+            con = ConexionSQL2o.getSql2o().open();
             List<Permiso> aux = con.createQuery(query).addParameter("id",id).executeAndFetch(Permiso.class);
 			return aux;
         } catch (Sql2oException e) {

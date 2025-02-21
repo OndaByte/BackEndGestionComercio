@@ -22,12 +22,12 @@ public class DAOCaja extends GeneradorQuery<Caja> implements DAOInterface<Caja> 
 	public String getClave() {
 		return this.clave;
 	}
-
+/*
     public Caja getCaja(){		
         String query = "From Cajas C WHERE C.state = 'ACTIVO' AND C.fecha_cierre is null";
 		try{
             if(this.getConexion() == null){
-                this.setConexion(DAOSql2o.getSql2o().open());
+                this.setConexion(ConexionSQL2o.getSql2o().open());
             }
 			List<Caja> aux = this.getConexion().createQuery(query).executeAndFetch(this.getClase());
 			if (aux.isEmpty()) {
@@ -44,7 +44,7 @@ public class DAOCaja extends GeneradorQuery<Caja> implements DAOInterface<Caja> 
     public List<Caja> getCajas(Date fecha1, Date fecha2) {
 		try{
             if(this.getConexion() == null){
-                this.setConexion(DAOSql2o.getSql2o().open());
+                this.setConexion(ConexionSQL2o.getSql2o().open());
             }
 			if ((fecha1 != null && fecha2 != null) && fecha1.after(fecha2)){
 				throw new IllegalArgumentException("'from' no puede ser mayor a 'to'.\n");
@@ -72,7 +72,7 @@ public class DAOCaja extends GeneradorQuery<Caja> implements DAOInterface<Caja> 
     public List<ItemCaja> getItems(long id){
 		try{
             if(this.getConexion() == null){
-                this.setConexion(DAOSql2o.getSql2o().open());
+                this.setConexion(ConexionSQL2o.getSql2o().open());
             }
 			List<ItemCaja> resul;
 			String query = "FROM Pedidos P WHERE P.caja.id=:id";
@@ -92,7 +92,7 @@ public class DAOCaja extends GeneradorQuery<Caja> implements DAOInterface<Caja> 
 	public List<ItemCaja> getItems(Date fecha1, Date fecha2, Integer tipo, String pago){
         try{
             if(this.getConexion() == null){
-                this.setConexion(DAOSql2o.getSql2o().open());
+                this.setConexion(ConexionSQL2o.getSql2o().open());
             }
 			List<ItemCaja> resul;
 			String query = "From Pedidos P WHERE (:fecha1 IS null OR P.created_at >= :fecha1) AND (:fecha2 IS null OR P.created_at <= :fecha2)";
@@ -130,7 +130,7 @@ public class DAOCaja extends GeneradorQuery<Caja> implements DAOInterface<Caja> 
 
 		try{
             if(this.getConexion() == null){
-                this.setConexion(DAOSql2o.getSql2o().open());
+                this.setConexion(ConexionSQL2o.getSql2o().open());
             }
 			List<Caja> aux = this.getConexion().createQuery(query).executeAndFetch(this.getClase());
 			if (aux.isEmpty()) {
@@ -149,7 +149,7 @@ public class DAOCaja extends GeneradorQuery<Caja> implements DAOInterface<Caja> 
 		String query = "UPDATE Cajas C SET C.fecha_cierre = NULL WHERE C.id = :id";
 		try{
             if(this.getConexion() == null){
-                this.setConexion(DAOSql2o.getSql2o().open());
+                this.setConexion(ConexionSQL2o.getSql2o().open());
             }
 			this.getConexion().createQuery(query).addParameter("id",this.ultimaCaja().getId()).executeUpdate();
 		}
@@ -157,7 +157,7 @@ public class DAOCaja extends GeneradorQuery<Caja> implements DAOInterface<Caja> 
 			Log.log(e, DAOCaja.class);
 		}
 	}
-
+*/
 	@Override
 	public boolean alta(Caja t) {
 		// TODO Auto-generated method stub

@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.util.JSONPObject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 public class UsuarioControlador {
     private static Logger logger = LogManager.getLogger(UsuarioControlador.class.getName());
@@ -55,11 +56,12 @@ public class UsuarioControlador {
                 String token = Seguridad.getToken(aux.getUsuario());
                 List<Permiso> permiso = daoRol.getPermisosUsuario(aux.getId());
                 String mensaje = "Loggeado con èxito";
-                JSONPObject data = new JSONObject();
+                JSONObject data = new JSONObject();
                 data.put("token", token);
                 data.put("permisos",permiso);
                 ctx.status(200).result(buildRespuesta(200, data.toString(), mensaje));
             } else {
+                logger.info("Credenciales incorrectas" );
                 ctx.status(403).result(buildRespuesta(403, null,"credenciales incorrectas"));
             }
         } catch (Exception e) {
@@ -161,7 +163,7 @@ public class UsuarioControlador {
         return null;
     }
         
-    public static String buildRespuesta(String status, String data, String mensaje) {
+    public static String buildRespuesta(int status, String data, String mensaje) {
         JSONObject respuesta = new JSONObject();
         respuesta.put("status",status);
         respuesta.put("data",data);

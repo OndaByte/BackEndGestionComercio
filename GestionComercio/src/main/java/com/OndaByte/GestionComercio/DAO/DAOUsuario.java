@@ -62,7 +62,7 @@ public class DAOUsuario extends GeneradorQuery<Usuario> implements DAOInterface<
         Connection con = null;
 		try {
 			query = this.getQueryListar();
-            con = DAOSql2o.getSql2o().open();
+            con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).executeAndFetch(this.getClase());
         }  catch (Sql2oException e) {
             logger.error("Error SQL en DAOUsuario.listar(): " + e.getMessage(), e);
@@ -83,7 +83,7 @@ public class DAOUsuario extends GeneradorQuery<Usuario> implements DAOInterface<
         Connection con = null;
 		try {
 			query = this.getQueryAlta();
-            con = DAOSql2o.getSql2o().open();
+            con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).bind(t).executeUpdate().getResult() > 0;
         }  catch (Sql2oException e) {
             logger.error("Error SQL en DAOUsuario.alta(): " + e.getMessage(), e);
@@ -104,7 +104,7 @@ public class DAOUsuario extends GeneradorQuery<Usuario> implements DAOInterface<
         Connection con = null;
 		try {
 			query = this.getQueryBaja(borrar);
-            con = DAOSql2o.getSql2o().open();
+            con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).addParameter(this.getClave(), id).executeUpdate().getResult() > 0;
         }  catch (Sql2oException e) {
             logger.error("Error SQL en DAOUsuario.baja(): " + e.getMessage(), e);
@@ -126,7 +126,7 @@ public class DAOUsuario extends GeneradorQuery<Usuario> implements DAOInterface<
         Connection con = null;
 		try {
 			query = this.getQueryModificar();
-            con = DAOSql2o.getSql2o().open();
+            con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).bind(t).executeUpdate().getResult() > 0;
         }  catch (Sql2oException e) {
             logger.error("Error SQL en DAOUsuario.modificar(): " + e.getMessage(), e);
@@ -147,7 +147,7 @@ public class DAOUsuario extends GeneradorQuery<Usuario> implements DAOInterface<
         Connection con = null;
 		try {
 			query = this.getQueryListar(ids);
-            con = DAOSql2o.getSql2o().open();
+            con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).executeAndFetch(this.getClase());
         }  catch (Sql2oException e) {
             logger.error("Error SQL en DAOUsuario.listar(): " + e.getMessage(), e);
@@ -168,7 +168,7 @@ public class DAOUsuario extends GeneradorQuery<Usuario> implements DAOInterface<
         Connection con = null;
 		try {
 			query = this.getQueryFiltrar(campos, valores, condiciones);
-            con = DAOSql2o.getSql2o().open();
+            con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).executeAndFetch(this.getClase());
         }  catch (Sql2oException e) {
             logger.error("Error SQL en DAOUsuario.filtrar(): " + e.getMessage(), e);

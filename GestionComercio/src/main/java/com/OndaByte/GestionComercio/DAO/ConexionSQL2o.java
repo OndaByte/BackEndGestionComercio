@@ -1,7 +1,7 @@
 package com.OndaByte.GestionComercio.DAO;
 import org.sql2o.Sql2o;
 
-public class DAOSql2o {
+public class ConexionSQL2o {
     protected static Sql2o sql2o;
 
     public static Sql2o getSql2o() {

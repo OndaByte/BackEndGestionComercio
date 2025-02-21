@@ -31,7 +31,7 @@ public class DAOProducto extends  GeneradorQuery<Producto> implements DAOInterfa
         Connection con = null;
 		try {
 			query = this.getQueryFiltarId();
-            con = DAOSql2o.getSql2o().open();
+            con = ConexionSQL2o.getSql2o().open();
             Producto aux = con.createQuery(query).addParameter(this.getClave(), id).executeAndFetchFirst(this.getClase());
 			aux.sumarStock(Integer.parseInt(cant));
             if (aux != null){
