@@ -1,10 +1,13 @@
 package com.OndaByte.GestionComercio.DAO;
-import com.OndaByte.GestionComercio.util.Log;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.ArrayList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sql2o.Connection;
+import org.sql2o.Query;
+import org.sql2o.Sql2oException;
 
 /**
  * ABMDAO generico SQL para entidades simples, soporta maximo una herencia de entidad, ej Usuario extend ObjetoBD (esto es old, hay que cambiarlo)
@@ -14,9 +17,10 @@ public abstract class ABMDAO <T> {
 
     // Campos es una lista de string de todos los campos de las clases definidas por nosotros (ondabyte) y que ademas esten en el paquete "modelo", esto se podria abstraer mas
     private List<Field> campos = new ArrayList<Field>();
-    private Connection con;
+    protected Connection con;
+    private static Logger logger = LogManager.getLogger(ABMDAO.class.getName());
 
-	public ABMDAO(){setCampos();}
+    public ABMDAO(){setCampos();}
     /**
      * Este metodo debe ser definido por las clases especificas que hereden de ABMDAO, deberia devolver el tipo del objeto asociado a la entidad de la bd.
      * @return T
@@ -50,13 +54,13 @@ public abstract class ABMDAO <T> {
      *
      * @param T t - elemento a ser dado de alta.
      *
-     * @return boolean - verdadero si el alta fue exitosa.
+     * @return int el número de insersiones.
      */
-    public boolean alta(T t) {
-        try{
+    public boolean alta(T t)  throws Exception {
             // Esto tendria que abstraerlo a un gestor de errores.
             if(t.getClass() != this.getClase()){
-                throw (new Exception("ERROR: el objeto pasado por parametro es del tipo incorrecto, el tipo de este DAO es: "+this.getClase().getName()));
+                logger.error("ABMDAO.alta: Tipo de objeto incorrecto. Se esperaba " + this.getClase().getName() + " pero se recibió " + t.getClass().getName());
+                return false;
             }
 
             // Tendria que abstraer la conversion de objeto a lista de clave valor
@@ -72,20 +76,17 @@ public abstract class ABMDAO <T> {
             String query;
             query = "INSERT INTO " + this.getTabla() + columnas + " VALUES" + valores;
 
-            if(con == null){
-                con = DAOSql2o.getSql2o().open();
+            if (logger.isDebugEnabled()) {
+                logger.debug("ABMDAO.alta - SQL para inserción: " + query);
             }
-            
-            con.createQuery(query).bind(t).executeUpdate();
 
-            return true;
-        }
-        catch (Exception e){
-            Log.log(e, ABMDAO.class);
-        }
-        return false;
+            Query consulta = con.createQuery(query).bind(t);
+            int filasAfectadas = consulta.executeUpdate().getResult(); // Ejecuta la inserción
+            
+            return filasAfectadas>0;
     }
 
+    
     /**
      * Modifica la entidad en la base de datos con la misma clave que t,
      * se le asignan todos los atributos del objeto t a la entidad de la bd correspondiente
@@ -94,8 +95,7 @@ public abstract class ABMDAO <T> {
      *
      * @return boolean - verdadero si la modificacion fue exitosa.
      */
-    public boolean modificar(T t) {
-        try{
+    public boolean modificar(T t)  throws Exception{
             // Esto tendria que abstraerlo a un gestor de errores.
             if(t.getClass() != this.getClase()){
                 throw (new Exception("ERROR: el objeto pasado por parametro es del tipo incorrecto, el tipo de este DAO es: "+this.getClase().getName()));
@@ -110,17 +110,12 @@ public abstract class ABMDAO <T> {
                 set = set.substring(0,set.length()-2);
             query = "UPDATE " + this.getTabla() + " SET " + set + " WHERE "+this.getClave() + "=:"+this.getClave();
             
-            if(con == null){
-                con = DAOSql2o.getSql2o().open();
+            if (logger.isDebugEnabled()) {
+                logger.debug("ABMDAO.filtrar - SQL para Filtrar: " + query);
             }
-            con.createQuery(query).bind(t).executeUpdate();
-            return true;
+            int filasAfectadas = con.createQuery(query).bind(t).executeUpdate().getResult();
+            return filasAfectadas > 0;
         }
-        catch (Exception e){
-            Log.log(e, ABMDAO.class);
-        }
-        return false;
-    }
 
     /**
      * Elimina el objeto de tipo T asociado a id
@@ -129,46 +124,62 @@ public abstract class ABMDAO <T> {
      * @param boolean borrar - si borar es verdadero se realiza la baja de forma permanente, si es falso se puede recuperar modificando la bd.
      * @return boolean - verdadero si la baja fue exitosa, falso en caso contrario.
      */
-    public boolean baja(String id, boolean borrar){
-        try{
-            String query;
-            query = (borrar ? "DELETE FROM ": "UPDATE ") 
-                + this.getTabla() 
-                + (borrar ? " " : " SET estado=\"INACTIVO\" ")+"WHERE "+this.getClave() + "=:"+this.getClave()
-                + (borrar ? "" : " AND estado=\"ACTIVO\"");
-
-            if(con == null){
-                con = DAOSql2o.getSql2o().open();
-            }
-            con.createQuery(query, true).addParameter(this.getClave(), id).executeUpdate();
-            return true;
+    public boolean baja(String id, boolean borrar) throws Exception{
+        String query;
+        query = (borrar ? "DELETE FROM ": "UPDATE ") 
+            + this.getTabla() 
+            + (borrar ? " " : " SET estado=\"INACTIVO\" ")+"WHERE "+this.getClave() + "=:"+this.getClave()
+            + (borrar ? "" : " AND estado=\"ACTIVO\""); 
+        if (logger.isDebugEnabled()) {
+            logger.debug("ABMDAO.filtrar - SQL para Filtrar: " + query);
         }
-        catch(Exception e) {
-            Log.log(e, ABMDAO.class);
-        }
-        return false;
+        int filasAfectadas = con.createQuery(query, true)
+                                .addParameter(this.getClave(), id)
+                                .executeUpdate()
+                                .getResult(); 
+        return filasAfectadas > 0; 
     }
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     /**
      * Devulve todos los elementos de tipo T en la bd
      *
      * @return List<T> - lista de todos los elementos de tipo T
      */
-    public List<T> listar(){
-        try{
-            Class c = this.getClase();
-            String query = "SELECT * FROM "+ this.getTabla() +" WHERE estado=\"ACTIVO\"";
-            if(con == null){
-                con = DAOSql2o.getSql2o().open();
-            }
-            return con.createQuery(query).executeAndFetch(c);
+    public List<T> listar() throws Exception{
+        Class c = this.getClase();
+        String query = "SELECT * FROM "+ this.getTabla() +" WHERE estado=\"ACTIVO\""; 
+        if (logger.isDebugEnabled()) {
+            logger.debug("ABMDAO.filtrar - SQL para Filtrar: " + query);
         }
-        catch (Exception e){
-            Log.log(e, ABMDAO.class);
-        }
-        return null;
+        return con.createQuery(query).executeAndFetch(c);
     }
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     /**
      * Devulve una lista de los elementos asociados a los ids, la lista tendra los objetos asociados que encuentre, un id puede no tener elemento asociado.
      *
@@ -176,8 +187,7 @@ public abstract class ABMDAO <T> {
      *
      * @return List<T> - lista de todos los elementos asociados a ids
      */
-    public List<T> listar(String... ids){
-        try{
+    public List<T> listar(String... ids) throws Exception{
             String aux="";
             for (String id : ids){
                 aux += this.getTabla()+"."+this.getClave()+"="+id+" OR ";
@@ -186,15 +196,12 @@ public abstract class ABMDAO <T> {
 
             String query = "SELECT DISTINCT * FROM "+ this.getTabla() + " WHERE "+aux +" AND estado=\"ACTIVO\"";
             
-            if(con == null){
-                con = DAOSql2o.getSql2o().open();
+            if (logger.isDebugEnabled()) {
+                logger.debug("ABMDAO.filtrar - SQL para Filtrar: " + query);
             }
+            
             return con.createQuery(query).executeAndFetch(this.getClase());
-        }
-        catch(Exception e) {
-            Log.log(e, ABMDAO.class);
-        }
-        return null;
+        
     }
 
     /**
@@ -204,18 +211,13 @@ public abstract class ABMDAO <T> {
      *
      * @return List<T> - lista de todos los elementos asociados a ids
      */
-    public T filtrar(String id){
-        try {
-            String query = "SELECT * FROM "+ this.getTabla() + " WHERE "+ this.getClave()+" = :"+this.getClave();
+    public T filtrar(String id) throws Exception{
+        String query = "SELECT * FROM "+ this.getTabla() + " WHERE "+ this.getClave()+" = :"+this.getClave();
 
-            if(con == null){
-                con = DAOSql2o.getSql2o().open();
-            }
-            return con.createQuery(query).addParameter(this.getClave(), id).executeAndFetchFirst(this.getClase());
-        } catch (Exception e) {
-            Log.log(e, ABMDAO.class);
+        if (logger.isDebugEnabled()) {
+            logger.debug("ABMDAO.filtrar - SQL para Filtrar: " + query);
         }
-        return null;
+        return con.createQuery(query).addParameter(this.getClave(), id).executeAndFetchFirst(this.getClase());
     }
 
     /**
@@ -227,8 +229,7 @@ public abstract class ABMDAO <T> {
      *
      * @return List<T> - lista de todos los elementos asociados a ids
      */
-    public List<T> filtrar(List<String> campos, List<String> valores, List<Integer> condiciones){
-        try{
+    public List<T> filtrar(List<String> campos, List<String> valores, List<Integer> condiciones) throws Exception {
             if(campos == null || valores == null || condiciones == null || condiciones.size() != campos.size() || campos.size() != valores.size()){
                 throw(new Exception("Las listas deben tener el mismo tamaño"));
             }
@@ -263,18 +264,16 @@ public abstract class ABMDAO <T> {
                 queryAux +=valores.get(i) + "\" AND ";
                 i++;
             }
+            
             if(queryAux.length() > 1){queryAux = queryAux.substring(0, queryAux.length()-5);}
             String query = "SELECT * FROM "+ this.getTabla() + " WHERE";
             query+= queryAux;
-
-            if(con == null){
-                con = DAOSql2o.getSql2o().open();
+            
+            if (logger.isDebugEnabled()) {
+                logger.debug("ABMDAO.filtrar - SQL para Filtrar: " + query);
             }
+
             return con.createQuery(query).executeAndFetch(this.getClase());
+        
         }
-        catch (Exception e){
-            Log.log(e, ABMDAO.class);
-        }
-        return null;
-    }
 }

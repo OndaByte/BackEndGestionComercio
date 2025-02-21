@@ -37,8 +37,8 @@ public class App {
 
         // Rutas protegidas
         app.before("/protegido/*", FiltroAutenticador::filtro);
-        app.post("/protegido/actualizar", UsuarioControlador::cambiarcontra);
-        app.get("/protegido/usuarios", UsuarioControlador::usuarios);
+        app.post("/protegido/actualizar", UsuarioControlador::cambiarContra);
+        app.get("/protegido/usuarios", UsuarioControlador::getUsuarios);
         app.post("/protegido/eliminar", UsuarioControlador::baja);
 
         // Rutas públicas de usuario

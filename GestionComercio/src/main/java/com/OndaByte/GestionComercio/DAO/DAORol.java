@@ -31,8 +31,8 @@ public class DAORol extends ABMDAO<Rol> {
 		String query = "SELECT Permiso.* FROM UsuarioRol ur JOIN RolPermiso rp ON rp.rol_id = ur.rol_id JOIN Permiso ON Permiso.id = rp.permiso_id WHERE ur.usuario_id = :id";
 
         try{
-            if(this.getConexion() == null){
-                this.setConexion(DAOSql2o.getSql2o().open());
+            if(super.con == null){
+                super.con = DAOSql2o.getSql2o().open();
             }
             List<Permiso> aux = this.getConexion().createQuery(query).addParameter("id",id).executeAndFetch(Permiso.class);
 			return aux;

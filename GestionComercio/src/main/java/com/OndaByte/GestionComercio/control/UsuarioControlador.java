@@ -22,17 +22,16 @@ public class UsuarioControlador {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
-    public static void usuarios(Context ctx) {
-        try {
+
+    public static void getUsuarios(Context ctx) {
+            logger.debug("UsuarioControlador.usuarios");
             DAOUsuario dao = new DAOUsuario();
             List<Usuario> usuarios = dao.listar();
             ctx.status(200).json(usuarios);
-        } catch (Exception e) {
-            logger.error("Error en UsuarioControlador.usuarios" + e);
-        }
     }
 
     public static void login(Context ctx) {
+        logger.debug("UsuarioControlador.login");
         LoginPost peticion;
         try {
             peticion = objectMapper.readValue(ctx.body(), LoginPost.class);
@@ -53,12 +52,12 @@ public class UsuarioControlador {
                 ctx.status(500).result("Error al loguear");
             }
         } catch (Exception e) {
-            Log.log(e, UsuarioControlador.class);
+            logger.error("Error en  UsuarioControlador.login " + e.getMessage());
         }
-
     }
 
-    public static void cambiarcontra(Context ctx) {
+    public static void cambiarContra(Context ctx) {
+        logger.debug("UsuarioControlador.cambiarContra");
         String usuario = ctx.queryParam("usuario");
         String contra = ctx.queryParam("contra");
         String nueva = ctx.queryParam("nueva");
@@ -82,7 +81,7 @@ public class UsuarioControlador {
                 ctx.status(500).result("Error al loguear");
             }
         } catch (Exception e) {
-            Log.log(e, UsuarioControlador.class);
+            logger.error("Error en  UsuarioControlador.cambiarContra " + e.getMessage());
         }
     }
 
@@ -96,23 +95,23 @@ public class UsuarioControlador {
             }
 
             DAOUsuario dao = new DAOUsuario();
-            Usuario nuevo = new Usuario();
-            nuevo.setUsuario(peticion.getUsuario());
-            nuevo.setContra(BCrypt.hashpw(peticion.getContra(), BCrypt.gensalt()));
+         //   Usuario nuevo = new Usuario();
+         //   nuevo.setUsuario(peticion.getUsuario());
+         //   nuevo.setContra(BCrypt.hashpw(peticion.getContra(), BCrypt.gensalt()));
 
-            if (dao.alta(nuevo)) {
+            if (dao.alta(null)) {
                 ctx.status(201).result("Registro exitoso");
             } else {
                 ctx.status(500).result("Error al registrar");
             }
         } catch (Exception e) {
-            Log.log(e, UsuarioControlador.class);
+            logger.error("Error en  UsuarioControlador.registrar " + e.getMessage());
         }
 
     }
 
     public static void loginForm(Context ctx) {
-        ctx.status(404).result("no implementado sory");
+      //  ctx.status(404).result("no implementado");
     }
 
     public static void baja(Context ctx) {
@@ -129,7 +128,27 @@ public class UsuarioControlador {
             boolean resultado = dao.baja(id, Boolean.parseBoolean(borrar));
             ctx.status(200).result(String.valueOf(resultado));
         } catch (Exception e) {
-            Log.log(e, UsuarioControlador.class);
+            logger.error("Error en  UsuarioControlador.baja " + e.getMessage());
         }
     }
+    
+    public Object lecturaJSON(String msgJson){
+      /*  Jackpot pozo = null;
+        try { 
+            //Map<String, Object> map = mapperObj.readValue(msgJson, new TypeReference<Map<String,Object>>(){});
+            //String timestamp = (String) map.get("timestamp");
+            //String macAddress = (String) map.get("macAddress"); 
+            //String payload = mapperObj.writeValueAsString(map.get("payload")); // Obtengo payLoad
+            pozo = mapperObj.readValue(msgJson, Jackpot.class);  //Creo contador
+            
+        } catch (JsonProcessingException ex) { 
+            logger.error("Error en lectura del 'JSON' en JackpotController.parseoJSON() " + " " + ex.getMessage());       
+        }*/
+        return null;
+    }
+        
+    public static String buildRespuesta(String status, String data, String mensaje) {
+        return null;
+    }
+
 }
