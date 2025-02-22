@@ -55,40 +55,133 @@ public class DAORol extends GeneradorQuery<Rol> implements DAOInterface<Rol> {
         return null;
     }
 
+
 	@Override
 	public boolean alta(Rol t) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'alta'");
+        String query;
+        Connection con = null;
+		try {
+			query = this.getQueryAlta();
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).bind(t).executeUpdate().getResult() > 0;
+        }  catch (Sql2oException e) {
+            logger.error("Error SQL en DAORol.alta(): " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error inesperado en DAORol.alta(): " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+            }
+            logger.debug("Conexión cerrada después de llamar a DAORol.alta()");
+        }
+        return false;
 	}
 
 	@Override
 	public boolean baja(String id, boolean borrar) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'baja'");
+        String query;
+        Connection con = null;
+		try {
+			query = this.getQueryBaja(borrar);
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).addParameter(this.getClave(), id).executeUpdate().getResult() > 0;
+        }  catch (Sql2oException e) {
+            logger.error("Error SQL en DAORol.baja(): " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error inesperado en DAORol.baja(): " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+            }
+            logger.debug("Conexión cerrada después de llamar a DAORol.baja()");
+        }
+        return false;
 	}
 
 	@Override
 	public boolean modificar(Rol t) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'modificar'");
+        String query;
+        Connection con = null;
+		try {
+			query = this.getQueryModificar();
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).bind(t).executeUpdate().getResult() > 0;
+        }  catch (Sql2oException e) {
+            logger.error("Error SQL en DAORol.modificar(): " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error inesperado en DAORol.modificar(): " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+            }
+            logger.debug("Conexión cerrada después de llamar a DAOUsuario.modificar()");
+        }
+        return false;
 	}
 
-	@Override
-	public List<Rol> listar() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'listar'");
-	}
 
+    @Override
+    public List<Rol> listar() {
+        String query;
+        Connection con = null;
+		try {
+			query = this.getQueryListar();
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).executeAndFetch(this.getClase());
+        }  catch (Sql2oException e) {
+            logger.error("Error SQL en DAORol.listar(): " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error inesperado en DAORol.listar(): " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+            }
+            logger.debug("Conexión cerrada después de llamar a DAORol.listar()");
+        }
+        return null;
+    }
+    
 	@Override
 	public List<Rol> listar(String... ids) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'listar'");
+        String query;
+        Connection con = null;
+		try {
+			query = this.getQueryListar(ids);
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).executeAndFetch(this.getClase());
+        }  catch (Sql2oException e) {
+            logger.error("Error SQL en DAORol.listar(): " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error inesperado en DAORol.listar(): " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+            }
+            logger.debug("Conexión cerrada después de llamar a DAORol.listar()");
+        }
+        return null;
 	}
 
 	@Override
 	public List<Rol> filtrar(List<String> campos, List<String> valores, List<Integer> condiciones) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'filtrar'");
+        String query;
+        Connection con = null;
+		try {
+			query = this.getQueryFiltrar(campos, valores, condiciones);
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).executeAndFetch(this.getClase());
+        }  catch (Sql2oException e) {
+            logger.error("Error SQL en DAORol.filtrar(): " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error inesperado en DAORol.filtrar(): " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+            }
+            logger.debug("Conexión cerrada después de llamar a DAOUsuario.filtrar()");
+        }
+        return null;
 	}
+    
 
 }

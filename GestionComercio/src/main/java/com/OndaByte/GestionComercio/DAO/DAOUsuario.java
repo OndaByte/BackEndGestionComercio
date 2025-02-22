@@ -56,7 +56,8 @@ public class DAOUsuario extends GeneradorQuery<Usuario> implements DAOInterface<
         }
         return null;
     }
-    
+
+    @Override
     public List<Usuario> listar() {
         String query;
         Connection con = null;
