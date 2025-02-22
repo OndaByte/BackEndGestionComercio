@@ -14,7 +14,6 @@ import io.javalin.http.Context;
 import org.mindrot.jbcrypt.BCrypt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,19 +38,21 @@ public class UsuarioControlador {
         try {
             //Usuario peticion = ctx.bodyAsClass(Usuario.class);
             JSONObject bodyJson = new JSONObject(ctx.body());
-            Usuario peticion = new Usuario(bodyJson.getString("user"),bodyJson.getString("pass"));
             // objectMapper.readValue(ctx.body(), LoginPost.class);
 
-            if (peticion.getUsuario() == null || peticion.getContra() == null) {
-                ctx.status(400).result(buildRespuesta(400, null, "Formulario incorrecto"));
+            if(!bodyJson.has("user") || bodyJson.isNull("user") || bodyJson.getString("user") == ""
+               || !bodyJson.has("pass") || bodyJson.isNull("pass") || bodyJson.getString("pass") == "")
+                
+                {
+                ctx.status(400).result(buildRespuesta(400, null, "Formulario Incorrecto"));
                 return;
             }
 
             DAOUsuario dao = new DAOUsuario();
             DAORol daoRol = new DAORol();
-            Usuario aux = dao.getUsuario(peticion.getUsuario());
+            Usuario aux = dao.getUsuario(bodyJson.getString("user"));
 
-            if (aux != null && BCrypt.checkpw(peticion.getContra(), aux.getContra())) {
+            if (aux != null && BCrypt.checkpw(bodyJson.getString("pass"), aux.getContra())) {
                 //Armo el data
                 String token = Seguridad.getToken(aux.getUsuario());
                 List<Permiso> permiso = daoRol.getPermisosUsuario(aux.getId());
