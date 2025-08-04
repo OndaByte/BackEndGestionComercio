@@ -1,11 +1,6 @@
-/**
- * Author:  luciano
- * Created: 21 mar 2025
- */
-
 SELECT CONCAT('DROP TABLE IF EXISTS ', table_name, ';') 
 FROM information_schema.tables 
-WHERE table_schema = 'AntartidaBD';
+WHERE table_schema = 'GestionComercioBD';
 
 SET FOREIGN_KEY_CHECKS = 0;
 /* 

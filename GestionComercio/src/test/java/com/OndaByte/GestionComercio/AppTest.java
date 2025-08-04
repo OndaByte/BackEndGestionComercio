@@ -59,7 +59,7 @@ class AppTest {
     @BeforeAll
     static void iniciarServer() {
         ConfiguracionGeneral.init();
-        ConfiguracionGeneral.setCONFIG_MYSQL_NAME("AntartidaTest?serverTimezone=America/Argentina/Buenos_Aires");
+        ConfiguracionGeneral.setCONFIG_MYSQL_NAME("GestionComercioTest?serverTimezone=America/Argentina/Buenos_Aires");
         ConfiguracionGeneral.setCONFIG_HTTP_API_PORT("5423");
         ConfiguracionGeneral.setInicializado(true);
         App.main(null);
