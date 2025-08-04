@@ -5,183 +5,222 @@ import com.OndaByte.GestionComercio.modelo.Rol;
 
 import java.util.List;
 
-import org.sql2o.Connection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.sql2o.Sql2oException;
 
+import org.sql2o.Connection;
 
-/**
- * DAORol
- */
-public class DAORol extends GeneradorQuery<Rol> implements DAOInterface<Rol> {
-    public DAORol() {
-		super();
-	}
-
-    
+public class DAORol implements DAOInterface<Rol> {
     private static Logger logger = LogManager.getLogger(DAORol.class.getName());
     
-	private String clave = "id";
-
-	@Override
-	public Class<Rol> getClase() {
+    private String clave = "id";
+    private GeneradorQuery<Rol> generadorQuery;
+    
+    public DAORol() {
+        generadorQuery = new GeneradorQuery<Rol>(Rol.class);
+        generadorQuery.setClave(clave);
+    }
+    
+    public Class<Rol> getClase() {
         return Rol.class;
-	}
+    }
 
-	@Override
-	public String getClave() {
-        return this.clave;
-	}
-
-    public List<Permiso> getPermisosUsuario(int id){
-		String query = "SELECT Permiso.* FROM UsuarioRol ur JOIN RolPermiso rp ON rp.rol_id = ur.rol_id JOIN Permiso ON Permiso.id = rp.permiso_id WHERE ur.usuario_id = :id";
+    
+    public Rol getRolUsuario(String id){
+        String query = "SELECT Rol.* FROM UsuarioRol ur JOIN Rol ON Rol.id = ur.rol_id WHERE ur.usuario_id = :id";
         Connection con = null;
-
+        logger.debug("RolUsuario: "+id);
         try{
             con = ConexionSQL2o.getSql2o().open();
-            List<Permiso> aux = con.createQuery(query).addParameter("id",id).executeAndFetch(Permiso.class);
-			return aux;
-        } catch (Sql2oException e) {
-            logger.error("Error SQL en DAORol.getPermisosUsuario(): " + e.getMessage(), e);
+            return (Rol) con.createQuery(query).addParameter("id",id).executeAndFetchFirst(this.getClase());
         } catch (Exception e) {
-            logger.error("Error inesperado en DAORol.getPermisosUsuario(): " + e.getMessage(), e);
+            logger.error("RolUsuario: " + e.getMessage(), e);
         } finally {
             if (con != null) {
-                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+                con.close();
+                logger.debug("RolUsuario: Conexion cerrada");
             }
-            logger.debug("Conexión cerrada después de llamar a DAORol.getPermisosUsuario()");
+        }
+        return null;
+    }
+    
+    public List<Permiso> getPermisosUsuario(int id){
+        String query = "SELECT Permiso.* FROM UsuarioRol ur JOIN RolPermiso rp ON rp.rol_id = ur.rol_id JOIN Permiso ON Permiso.id = rp.permiso_id WHERE ur.usuario_id = :id";
+        Connection con = null;
+        logger.debug("PermisosUsuario: "+id);
+        try{
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).addParameter("id",id).executeAndFetch(Permiso.class);
+        } catch (Exception e) {
+            logger.error("PermisosUsuario: " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close();
+                logger.debug("PermisosUsuario: Conexion cerrada");
+            }
         }
         return null;
     }
 
 
-	@Override
-	public boolean alta(Rol t) {
+    @Override
+    public Integer alta(Rol t) {
         String query;
         Connection con = null;
-		try {
-			query = this.getQueryAlta();
+        logger.debug("Alta: "+t.toString());
+        try {
+            query = generadorQuery.getQueryAlta(t);
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).bind(t).executeUpdate().getKey(Integer.class);
+        }  catch (Exception e) {
+            logger.error("Alta: " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close();
+                logger.debug("Alta: Conexion cerrada");
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean baja(String id, boolean borrar) {
+        String query;
+        Connection con = null;
+        logger.debug("Baja: "+id);
+        try {
+            query = generadorQuery.getQueryBaja(borrar);
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).addParameter(this.clave, id).executeUpdate().getResult() > 0;
+        }  catch (Exception e) {
+            logger.error("Baja: " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close();
+                logger.debug("Baja: Conexion cerrada");
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean modificar(Rol t) {
+        String query;
+        Connection con = null;
+        
+        logger.debug("Modificar: "+t.toString());
+        try {
+            query = generadorQuery.getQueryModificar();
             con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).bind(t).executeUpdate().getResult() > 0;
-        }  catch (Sql2oException e) {
-            logger.error("Error SQL en DAORol.alta(): " + e.getMessage(), e);
         } catch (Exception e) {
-            logger.error("Error inesperado en DAORol.alta(): " + e.getMessage(), e);
+            logger.error("Modificar: " + e.getMessage(), e);
         } finally {
             if (con != null) {
-                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+                con.close();
+                logger.debug("Modificar: Conexion cerrada");
             }
-            logger.debug("Conexión cerrada después de llamar a DAORol.alta()");
         }
         return false;
-	}
-
-	@Override
-	public boolean baja(String id, boolean borrar) {
-        String query;
-        Connection con = null;
-		try {
-			query = this.getQueryBaja(borrar);
-            con = ConexionSQL2o.getSql2o().open();
-            return con.createQuery(query).addParameter(this.getClave(), id).executeUpdate().getResult() > 0;
-        }  catch (Sql2oException e) {
-            logger.error("Error SQL en DAORol.baja(): " + e.getMessage(), e);
-        } catch (Exception e) {
-            logger.error("Error inesperado en DAORol.baja(): " + e.getMessage(), e);
-        } finally {
-            if (con != null) {
-                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
-            }
-            logger.debug("Conexión cerrada después de llamar a DAORol.baja()");
-        }
-        return false;
-	}
-
-	@Override
-	public boolean modificar(Rol t) {
-        String query;
-        Connection con = null;
-		try {
-			query = this.getQueryModificar();
-            con = ConexionSQL2o.getSql2o().open();
-            return con.createQuery(query).bind(t).executeUpdate().getResult() > 0;
-        }  catch (Sql2oException e) {
-            logger.error("Error SQL en DAORol.modificar(): " + e.getMessage(), e);
-        } catch (Exception e) {
-            logger.error("Error inesperado en DAORol.modificar(): " + e.getMessage(), e);
-        } finally {
-            if (con != null) {
-                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
-            }
-            logger.debug("Conexión cerrada después de llamar a DAOUsuario.modificar()");
-        }
-        return false;
-	}
+    }
 
 
     @Override
     public List<Rol> listar() {
         String query;
         Connection con = null;
-		try {
-			query = this.getQueryListar();
+        logger.debug("Listar");
+        try {
+            query = generadorQuery.getQueryListar();
             con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).executeAndFetch(this.getClase());
-        }  catch (Sql2oException e) {
-            logger.error("Error SQL en DAORol.listar(): " + e.getMessage(), e);
         } catch (Exception e) {
-            logger.error("Error inesperado en DAORol.listar(): " + e.getMessage(), e);
+            logger.error("Listar: " + e.getMessage(), e);
         } finally {
             if (con != null) {
-                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+                con.close();
+            logger.debug("Listar: Conexion cerrada");
             }
-            logger.debug("Conexión cerrada después de llamar a DAORol.listar()");
         }
         return null;
     }
     
-	@Override
-	public List<Rol> listar(String... ids) {
+    @Override
+    public List<Rol> listar(String... ids) {
         String query;
         Connection con = null;
-		try {
-			query = this.getQueryListar(ids);
+        logger.debug("Listar: "+ids.toString());
+        try {
+            query = generadorQuery.getQueryListar(ids);
             con = ConexionSQL2o.getSql2o().open();
             return con.createQuery(query).executeAndFetch(this.getClase());
-        }  catch (Sql2oException e) {
-            logger.error("Error SQL en DAORol.listar(): " + e.getMessage(), e);
         } catch (Exception e) {
-            logger.error("Error inesperado en DAORol.listar(): " + e.getMessage(), e);
+            logger.error("Listar: " + e.getMessage(), e);
         } finally {
             if (con != null) {
-                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+                con.close();
+                logger.debug("Listar: Conexion cerrada");
             }
-            logger.debug("Conexión cerrada después de llamar a DAORol.listar()");
         }
         return null;
+    }
+
+    @Override
+    public List<Rol> filtrar(List<String> campos, List<String> valores, List<Integer> condiciones,List<Boolean> conectores) {
+        String query;
+        Connection con = null;
+        logger.debug("Filtrar:\nCampos: "+campos.toString()+"\nValores: "+valores.toString()+"\nCondiciones: "+condiciones.toString() + "\nConectores: "+ conectores.toString());
+        try {
+            query = generadorQuery.getQueryFiltrar(campos, valores, condiciones, conectores);
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query).executeAndFetch(this.getClase());
+        } catch (Exception e) {
+            logger.error("Filtrar: " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close();
+                logger.debug("Filtrar: Conexion cerrada");
+            }
+        }
+        return null;
+    }
+
+	public boolean cambiarRol(String idUsuario, String idRol) {
+        String query = "UPDATE UsuarioRol SET rol_id=:rol_id WHERE usuario_id=:usuario_id";
+        Connection con = null;
+        logger.debug("CambiarRol: "+idUsuario+" "+idRol);
+        try{
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query)
+                .addParameter("rol_id",idRol)
+                .addParameter("usuario_id",idUsuario)
+                .executeUpdate().getResult() > 0;
+        } catch (Exception e) {
+            logger.error("CambiarRol: " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close();
+                logger.debug("CambiarRol: Conexion cerrada");
+            }
+        }
+        return false;
 	}
 
 	@Override
-	public List<Rol> filtrar(List<String> campos, List<String> valores, List<Integer> condiciones) {
-        String query;
+	public Rol buscar(String nombre) {
+        String query = "SELECT * FROM Rol WHERE nombre=:nombre";
         Connection con = null;
-		try {
-			query = this.getQueryFiltrar(campos, valores, condiciones);
+        try{
             con = ConexionSQL2o.getSql2o().open();
-            return con.createQuery(query).executeAndFetch(this.getClase());
-        }  catch (Sql2oException e) {
-            logger.error("Error SQL en DAORol.filtrar(): " + e.getMessage(), e);
-        } catch (Exception e) {
-            logger.error("Error inesperado en DAORol.filtrar(): " + e.getMessage(), e);
+            return (Rol) con.createQuery(query).addParameter("nombre",nombre).executeAndFetchFirst(this.getClase());
+       } catch (Exception e) {
+            logger.error("CambiarRol: " + e.getMessage(), e);
         } finally {
             if (con != null) {
-                con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
+                con.close();
+                logger.debug("CambiarRol: Conexion cerrada");
             }
-            logger.debug("Conexión cerrada después de llamar a DAOUsuario.filtrar()");
         }
         return null;
 	}
-    
-
 }

@@ -1,0 +1,30 @@
+/**
+ * Author:  luciano
+ * Created: 21 mar 2025
+ */
+
+SELECT CONCAT('DROP TABLE IF EXISTS ', table_name, ';') 
+FROM information_schema.tables 
+WHERE table_schema = 'AntartidaBD';
+
+SET FOREIGN_KEY_CHECKS = 0;
+/* 
+DROP TABLE IF EXISTS UsuarioRol;
+DROP TABLE IF EXISTS ItemPresupuesto;
+DROP TABLE IF EXISTS Orden;
+DROP TABLE IF EXISTS Recurso;
+DROP TABLE IF EXISTS Rol;
+DROP TABLE IF EXISTS Permiso;
+DROP TABLE IF EXISTS TurnoOrden;
+DROP TABLE IF EXISTS Empleado;
+DROP TABLE IF EXISTS Pedido;
+DROP TABLE IF EXISTS TurnoDia;
+DROP TABLE IF EXISTS Usuario;
+DROP TABLE IF EXISTS RolPermiso;
+DROP TABLE IF EXISTS Insumo;
+DROP TABLE IF EXISTS Turno;
+DROP TABLE IF EXISTS Cliente;
+DROP TABLE IF EXISTS Presupuesto;
+*/
+SET FOREIGN_KEY_CHECKS = 1;
+

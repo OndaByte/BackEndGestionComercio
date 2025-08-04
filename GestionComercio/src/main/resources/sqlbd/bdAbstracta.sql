@@ -1,190 +1,451 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS Recurso;
+DROP TABLE IF EXISTS Empleado;
+DROP TABLE IF EXISTS Insumo;
 DROP TABLE IF EXISTS Orden;
-DROP TABLE IF EXISTS TurnoDia;
-DROP TABLE IF EXISTS Turno;
+DROP TABLE IF EXISTS ItemPresupuesto;
+DROP TABLE IF EXISTS ItemRemito;
+DROP TABLE IF EXISTS Presupuesto;
+DROP TABLE IF EXISTS Remito;
 DROP TABLE IF EXISTS Pedido;
+DROP TABLE IF EXISTS Turno;
 DROP TABLE IF EXISTS Cliente;
 DROP TABLE IF EXISTS RolPermiso;
 DROP TABLE IF EXISTS UsuarioRol;
 DROP TABLE IF EXISTS Permiso;
 DROP TABLE IF EXISTS Rol;
 DROP TABLE IF EXISTS Usuario;
+
+DROP TABLE IF EXISTS Periodo;
+DROP TABLE IF EXISTS GastoFijo;
 DROP TABLE IF EXISTS ItemVenta;
 DROP TABLE IF EXISTS Movimiento;
-DROP TABLE IF EXISTS Venta;
 DROP TABLE IF EXISTS Caja;
-DROP TABLE IF EXISTS Producto;
+DROP TABLE IF EXISTS SesionCaja;
+SET FOREIGN_KEY_CHECKS = 1;
 
---Contra larga xq va encriptada
+
+-- USUARIO TABLAS --
+
 CREATE TABLE Usuario(
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
-usuario VARCHAR(50) UNIQUE,
-contra VARCHAR(500)
+    usuario VARCHAR(50) UNIQUE NOT NULL,
+    contra VARCHAR(500) NOT NULL
 );
 
-CREATE TABLE Producto (
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
-
-nombre VARCHAR(45) NOT NULL,
-precio_costo FLOAT NOT NULL DEFAULT 0,
-precio_venta FLOAT NOT NULL DEFAULT 0,
-stock_actual INT NOT NULL DEFAULT 0,
-stock_frizado INT NOT NULL DEFAULT 0,
-ingredientes_receta VARCHAR(1000) NOT NULL
+CREATE TABLE Rol(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) UNIQUE NOT NULL
 );
+
+CREATE TABLE Permiso(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE UsuarioRol (
+    usuario_id INT NOT NULL,
+    rol_id INT NOT NULL,
+    PRIMARY KEY (usuario_id, rol_id),
+    FOREIGN KEY (usuario_id) REFERENCES Usuario(id) ON DELETE CASCADE,
+    FOREIGN KEY (rol_id) REFERENCES Rol(id) ON DELETE CASCADE
+);
+
+CREATE TABLE RolPermiso (
+    rol_id INT NOT NULL,
+    permiso_id INT NOT NULL,
+    PRIMARY KEY (rol_id, permiso_id),
+    FOREIGN KEY (rol_id) REFERENCES Rol(id) ON DELETE CASCADE,
+    FOREIGN KEY (permiso_id) REFERENCES Permiso(id) ON DELETE CASCADE
+);
+
+-- CLIENTE TABLAS
 
 CREATE TABLE Cliente(
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
-dni VARCHAR(50) NOT NULL UNIQUE,
-nombre VARCHAR(50) DEFAULT NULL,
-telefono VARCHAR(50) DEFAULT NULL,
-direccion VARCHAR(50) DEFAULT NULL,
-localidad VARCHAR(50) DEFAULT NULL,
-codigo_postal VARCHAR(50) DEFAULT NULL,
-provincia VARCHAR(50) DEFAULT NULL,
-cond_iva ENUM("RESP INSCRIPTO","MONOTRIBUTISTA","EXENTO", "CONS FIN") DEFAULT "CONS FIN",
-cond_venta ENUM("CONTADO","CUENTA CORRIENTE","CHEQUE","TARJETA CREDITO","OTRO") DEFAULT "CONTADO"
+    nombre VARCHAR(99) NOT NULL,
+    email VARCHAR(50) DEFAULT NULL,
+    dni VARCHAR(50) NOT NULL UNIQUE,
+    cuit_cuil VARCHAR(50) NOT NULL UNIQUE,
+    telefono VARCHAR(50) DEFAULT NULL,
+    direccion VARCHAR(50) DEFAULT NULL,
+    localidad VARCHAR(50) DEFAULT NULL,
+    codigo_postal VARCHAR(50) DEFAULT NULL,
+    provincia VARCHAR(50) DEFAULT NULL,
+    cond_iva ENUM("RESPONSABLE INSCRIPTO","MONOTRIBUTISTA","EXENTO") DEFAULT "MONOTRIBUTISTA"
 );
 
-CREATE TABLE Pedido(
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
-
-cliente_id INT NOT NULL,
-descripcion VARCHAR(1000) DEFAULT NULL,
-fecha_fin TIMESTAMP DEFAULT NULL,
-estado_pedido ENUM("PENDIENTE","APROBADO","PRESUPUESTADO","CANCELADO") DEFAULT "PENDIENTE",
-FOREIGN KEY (cliente_id) REFERENCES Cliente(id)
-);
-
+-- patron repeticion representa con un int los flags de repeticion, 00..00 (no se re repite), 001 lunes, 010 martes,011 lunes y martes, 100 miercoles ...
 CREATE TABLE Turno(
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
-hora_inicio TIME NOT NULL,
-hora_fin TIME NOT NULL
-
+    tipo ENUM("INSPECCION","REPARACION","MANTENIMIENTO") DEFAULT "INSPECCION",
+    prioridad int DEFAULT 0,
+    observaciones VARCHAR(1000) DEFAULT NULL,
+    fecha_inicio TIMESTAMP NOT NULL,
+    fecha_fin_e TIMESTAMP NOT NULL,
+    patron_repeticion int DEFAULT NULL,
+    estado_turno ENUM("PENDIENTE","TERMINADO") DEFAULT "PENDIENTE"
 );
 
-CREATE TABLE TurnoDia (
-id INT AUTO_INCREMENT PRIMARY KEY,
-turno_id INT NOT NULL,
-dia ENUM('LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO') NOT NULL,
-FOREIGN KEY (turno_id) REFERENCES Turno(id) ON DELETE CASCADE
+-- ORDENES Y PEDIDOS
+CREATE TABLE Pedido(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+
+    turno_id INT DEFAULT NULL UNIQUE,
+
+    cliente_id INT NOT NULL,
+    presupuesto_id INT DEFAULT NULL UNIQUE,
+    descripcion VARCHAR(1000) DEFAULT NULL,
+    fecha_fin_estimada TIMESTAMP DEFAULT NULL,
+    estado_pedido ENUM("PENDIENTE","ASIGNADO","PRESUPUESTADO","APROBADO","RECHAZADO") DEFAULT "PENDIENTE",
+    FOREIGN KEY (cliente_id) REFERENCES Cliente(id),
+    FOREIGN KEY (turno_id) REFERENCES Turno(id)
+);
+
+CREATE TABLE Presupuesto(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+
+    pedido_id INT NOT NULL UNIQUE,
+    nombre VARCHAR(200) DEFAULT NULL,
+    descripcion VARCHAR(1000) DEFAULT NULL,
+    total FLOAT DEFAULT 0.0,
+    estado_presupuesto ENUM("APROBADO","RECHAZADO","PENDIENTE") DEFAULT "PENDIENTE",
+    FOREIGN KEY (pedido_id) REFERENCES Pedido(id)
+);
+
+CREATE TABLE ItemPresupuesto(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+
+    descripcion VARCHAR(200) DEFAULT NULL,
+    precio  FLOAT DEFAULT 0 NOT NULL,
+    cantidad INT NULL,
+    presupuesto_id INT NOT NULL,
+    FOREIGN KEY (presupuesto_id) REFERENCES Presupuesto(id)
 );
 
 
 CREATE TABLE Orden(
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    turno_id INT DEFAULT NULL UNIQUE,
+    pedido_id INT NOT NULL,
+    descripcion VARCHAR(1000) DEFAULT NULL,
+--     precio_final FLOAT DEFAULT NULL,
+--     costo_total FLOAT DEFAULT NULL,
+    fecha_fin TIMESTAMP DEFAULT NULL,
+    estado_orden ENUM("PENDIENTE","ASIGNADA","PROCESANDO","COMPLETADA","ENTREGADA") DEFAULT "PENDIENTE",
+    tipo ENUM("FABRICA","DOMICILIO","AUTO","REPARACION","MANTENIMIENTO") DEFAULT "DOMICILIO",
+    FOREIGN KEY (pedido_id) REFERENCES Pedido(id),
+    FOREIGN KEY (turno_id) REFERENCES Turno(id)
+);
+ 
+-- RECURSOS TABLAS
+CREATE TABLE Insumo(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
-pedido_id INT NOT NULL,
-turno_id INT NOT NULL,
-descripcion VARCHAR(1000) DEFAULT NULL,
-precio_final FLOAT DEFAULT NULL,
-costo_total FLOAT DEFAULT NULL,
-fecha_fin TIMESTAMP DEFAULT NULL,
-estado_orden ENUM("PENDIENTE","ASIGNADA","PROCESANDO","RETIRAR","CANCELADA","ENTREGADA") DEFAULT "PENDIENTE",
-
-FOREIGN KEY (pedido_id) REFERENCES Pedido(id),
-FOREIGN KEY (turno_id) REFERENCES Turno(id)
+    nombre VARCHAR(45) NOT NULL,
+    precio FLOAT NOT NULL DEFAULT 0,
+    stock INT NOT NULL DEFAULT 0
 );
 
+CREATE TABLE Empleado(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
-CREATE TABLE Caja (
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
-
-dinero_inicial FLOAT NOT NULL,
-dinero_total FLOAT NOT NULL,
-fecha_cierre TIMESTAMP NULL
+    dni VARCHAR(50) NOT NULL UNIQUE,
+    nombre VARCHAR(50) DEFAULT NULL,
+    telefono VARCHAR(50) DEFAULT NULL,
+    direccion VARCHAR(50) DEFAULT NULL
 );
 
-CREATE TABLE Movimiento (
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
-
-caja_id INT NOT NULL UNIQUE,
-descripcion VARCHAR(250) NULL,
-total FLOAT NOT NULL,
-FOREIGN KEY (caja_id) REFERENCES Caja(id) ON DELETE CASCADE
+CREATE TABLE Recurso(
+    orden_id INT NOT NULL,
+    insumo_id INT DEFAULT NULL,
+    empleado_id INT DEFAULT NULL,
+    FOREIGN KEY (orden_id) REFERENCES Orden(id),
+    FOREIGN KEY (insumo_id) REFERENCES Insumo(id),
+    FOREIGN KEY (empleado_id) REFERENCES Empleado(id)
 );
 
+---- Gastos Fijos
 
-CREATE TABLE Venta (
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+CREATE TABLE GastoFijo(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
-caja_id INT NOT NULL UNIQUE,
-metodo_pago VARCHAR(45) NOT NULL,
-total FLOAT NOT NULL,
-fecha_pago TIMESTAMP NULL,
-
-FOREIGN KEY (caja_id) REFERENCES Caja(id) ON DELETE CASCADE
-
---  cliente_id` int(11) DEFAULT NULL,
---  CONSTRAINT `ventas_ibfk_2` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`)
+    ult_pausa DATE NULL DEFAULT NULL,
+    nombre VARCHAR(50) UNIQUE NOT NULL,
+    inicio DATE NOT NULL,
+    repeticion INT DEFAULT 3
 );
 
-CREATE TABLE ItemVenta (
-id INT AUTO_INCREMENT PRIMARY KEY,
-creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+CREATE TABLE Periodo(
+    id INT AUTO_INCREMENT UNIQUE,
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
-producto_id INT NOT NULL,
-venta_id INT NOT NULL,
-cantidad INT NOT NULL,
-subtotal FLOAT NOT NULL,
-
-FOREIGN KEY (producto_id) REFERENCES Producto(id),
-FOREIGN KEY (venta_id) REFERENCES Venta(id)
+    costo FLOAT DEFAULT 0,
+    gasto_id INT NOT NULL,
+    periodo DATE NOT NULL,
+    FOREIGN KEY (gasto_id) REFERENCES GastoFijo(id) ON DELETE CASCADE,
+    PRIMARY KEY (gasto_id,periodo)
 );
 
-CREATE TABLE Rol(
-id INT AUTO_INCREMENT PRIMARY KEY,
-nombre VARCHAR(50) UNIQUE
+CREATE TABLE Caja(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    
+    estado_caja ENUM("ABIERTA","CERRADA") DEFAULT "CERRADA",
+    nombre VARCHAR(50) NOT NULL UNIQUE,
+    sesion_actual INT DEFAULT NULL
 );
 
-CREATE TABLE Permiso(
-id INT AUTO_INCREMENT PRIMARY KEY,
-nombre VARCHAR(50) UNIQUE
+CREATE TABLE SesionCaja(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    monto_inicial DECIMAL(12,2) NOT NULL DEFAULT 0,
+    monto_final DECIMAL(12,2) NULL,
+    apertura TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    cierre TIMESTAMP DEFAULT NULL,
+    cajero_id INT NOT NULL,
+    caja_id INT NOT NULL,
+    FOREIGN KEY (cajero_id) REFERENCES Usuario(id),
+    FOREIGN KEY (caja_id) REFERENCES Caja(id)
 );
 
-CREATE TABLE UsuarioRol (
-usuario_id INT,
-rol_id INT,
-PRIMARY KEY (usuario_id, rol_id),
-FOREIGN KEY (usuario_id) REFERENCES Usuario(id) ON DELETE CASCADE,
-FOREIGN KEY (rol_id) REFERENCES Rol(id) ON DELETE CASCADE
+CREATE TABLE Movimiento(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+
+    tipo_mov ENUM("VENTA", "INGRESO", "EGRESO") DEFAULT "VENTA",
+    descripcion VARCHAR(255) NULL, 
+    total DECIMAL(12,2) NOT NULL,
+    cliente_id INT DEFAULT NULL,
+    sesion_caja_id INT NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES Cliente(id),
+    FOREIGN KEY (sesion_caja_id) REFERENCES SesionCaja(id) ON DELETE CASCADE
 );
 
-CREATE TABLE RolPermiso (
-rol_id INT,
-permiso_id INT,
-PRIMARY KEY (rol_id, permiso_id),
-FOREIGN KEY (rol_id) REFERENCES Rol(id) ON DELETE CASCADE,
-FOREIGN KEY (permiso_id) REFERENCES Permiso(id) ON DELETE CASCADE
+CREATE TABLE Remito (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+
+    fecha_emision TIMESTAMP DEFAULT NULL,
+    fecha_pago TIMESTAMP DEFAULT NULL,
+
+    nro_remito INT NOT NULL UNIQUE,
+    punto_venta VARCHAR(50) DEFAULT NULL,
+    total FLOAT DEFAULT 0.0,
+    -- estado_remito ENUM("PAGADO","PENDIENTE") DEFAULT "PENDIENTE",
+
+    orden_id INT NOT NULL,
+    cliente_id INT NOT NULL,
+    movimiento_id INT NULL,
+
+    -- Campos redundantes del cliente
+    cliente_cuit_cuil VARCHAR(20) NOT NULL,
+    cliente_nombre VARCHAR(200) NOT NULL,
+    cliente_domicilio VARCHAR(200) DEFAULT NULL,
+    cliente_localidad VARCHAR(100) DEFAULT NULL,
+    cliente_telefono VARCHAR(50) DEFAULT NULL,
+
+    observaciones TEXT DEFAULT NULL,
+
+    FOREIGN KEY (orden_id) REFERENCES Orden(id),
+    FOREIGN KEY (cliente_id) REFERENCES Cliente(id),
+    FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id)
 );
+
+CREATE TABLE ItemRemito(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+
+    descripcion VARCHAR(200) DEFAULT NULL,
+    cantidad INT NULL,
+    precio  FLOAT DEFAULT 0 NOT NULL,
+    remito_id INT NOT NULL,
+    FOREIGN KEY (remito_id) REFERENCES Remito(id)
+);
+
+/*
+CREATE TABLE ItemVenta(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    precio_unitario FLOAT NOT NULL DEFAULT 0,
+    cantidad INT NOT NULL DEFAULT 0,
+    movimiento_id INT NOT NULL NULL,
+    producto_id INT NOT NULL,
+    FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES Producto(id)
+);
+
+CREATE TABLE ItemMovimiento(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    precio_unitario FLOAT NOT NULL DEFAULT 0,
+    cantidad INT NOT NULL DEFAULT 0,
+    movimiento_id INT NOT NULL NULL,
+    producto_id INT NOT NULL,
+    FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES Producto(id)
+);
+*/
+
+
+
+DROP TRIGGER IF EXISTS nueva_sesion_caja;
+DROP TRIGGER IF EXISTS cerrar_sesion_caja;
+DROP TRIGGER IF EXISTS alta_sesion_valida;
+DROP TRIGGER IF EXISTS actualizar_total_cerrar_sesion;
+DROP TRIGGER IF EXISTS alta_movimiento_valido;
+DROP TRIGGER IF EXISTS alta_movimiento_remito;
+
+DELIMITER $$
+CREATE TRIGGER nueva_sesion_caja
+AFTER INSERT ON SesionCaja
+FOR EACH ROW
+BEGIN
+    UPDATE Caja 
+    SET estado_caja = 'ABIERTA', sesion_actual = NEW.id
+    WHERE id = NEW.caja_id;
+END;
+
+CREATE TRIGGER cerrar_sesion_caja
+AFTER UPDATE ON SesionCaja
+FOR EACH ROW
+BEGIN
+    IF NEW.cierre IS NOT NULL AND OLD.cierre IS NULL THEN
+        UPDATE Caja 
+        SET estado_caja = 'CERRADA', sesion_actual = NULL
+        WHERE id = NEW.caja_id;
+    END IF;
+END;
+
+CREATE TRIGGER actualizar_total_cerrar_sesion
+BEFORE UPDATE ON SesionCaja
+FOR EACH ROW
+BEGIN
+    IF NEW.cierre IS NOT NULL AND OLD.cierre IS NULL THEN
+        SET NEW.monto_final = COALESCE(
+            (SELECT SUM(total) FROM Movimiento
+            WHERE sesion_caja_id=NEW.id)+NEW.monto_inicial,0.0);
+     END IF;
+END;
+
+CREATE TRIGGER alta_sesion_valida
+BEFORE INSERT ON SesionCaja
+FOR EACH ROW
+BEGIN
+    DECLARE caja_ocupada BOOLEAN;
+    DECLARE empleado_ocupado BOOLEAN;
+    
+    SELECT sesion_actual IS NOT NULL 
+    INTO caja_ocupada
+    FROM Caja 
+    WHERE id = NEW.caja_id;
+
+    SELECT EXISTS (
+        SELECT 1 
+        FROM SesionCaja 
+        WHERE cajero_id = NEW.cajero_id AND cierre IS NULL
+    ) INTO empleado_ocupado;
+    
+    IF caja_ocupada THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se puede crear sesion: caja en uso';
+    ELSEIF empleado_ocupado THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'No se puede crear sesion: cajero ya tiene sesion activa';
+    END IF;
+END;
+
+CREATE TRIGGER alta_movimiento_valido
+BEFORE INSERT ON Movimiento
+FOR EACH ROW
+BEGIN
+    DECLARE sesion_cerrada BOOLEAN;
+    
+    SELECT cierre IS NOT NULL
+    INTO sesion_cerrada
+    FROM SesionCaja
+    WHERE id = NEW.sesion_caja_id;
+
+    IF sesion_cerrada THEN
+       SIGNAL SQLSTATE '45002'
+       SET MESSAGE_TEXT = 'No se puede crear movimiento, sesion cerrada';
+    END IF;
+END;
+
+CREATE TRIGGER alta_movimiento_remito
+BEFORE UPDATE ON Remito
+FOR EACH ROW
+BEGIN
+    DECLARE sesion_abierta_id INT;
+    IF NEW.fecha_pago IS NOT NULL AND OLD.fecha_pago IS NULL THEN   
+      
+        SELECT id INTO sesion_abierta_id
+        FROM SesionCaja
+        WHERE cierre IS NULL
+        ORDER BY apertura DESC
+        LIMIT 1;
+
+        IF sesion_abierta_id IS NOT NULL THEN
+            INSERT INTO Movimiento (
+                tipo_mov, descripcion, total, cliente_id, sesion_caja_id
+            ) VALUES (
+                'VENTA',
+                CONCAT('Pago de Remito ID ', NEW.id),
+                NEW.total,
+                NEW.cliente_id,
+                sesion_abierta_id
+            );
+
+            SET NEW.movimiento_id = LAST_INSERT_ID();
+        ELSE
+            -- Si no hay sesión abierta, lanzar error personalizado
+            SIGNAL SQLSTATE '45002'
+            SET MESSAGE_TEXT = 'No se puede registrar el movimiento: no hay sesión de caja abierta.';
+        END IF;
+    END IF;
+END;
+$$
+
+DELIMITER ;
+

@@ -1,16 +1,13 @@
 package com.OndaByte.GestionComercio.modelo;
 
-/**
- * Permiso
- */
 public class Permiso {
-    private int id;
+    private Integer id;
     private String nombre;
 
     public int getId() {
         return id;
     }
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
     public String getNombre() {
@@ -18,8 +15,5 @@ public class Permiso {
     }
     public void setNombre(String nombre) {
         this.nombre = nombre;
-    }
-    public String toString(){
-        return "{ \"id\" : "+id+", \"nombre\" : \""+nombre+"\" }";
     }
 }

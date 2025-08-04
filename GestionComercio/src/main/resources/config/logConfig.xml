@@ -9,14 +9,13 @@
     </File>
     </Appenders>
   <Loggers>
-    <Logger name="io.javalin" level="INFO" additivity="false">
-        <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="org.eclipse.jetty" level="INFO" additivity="false">
-        <AppenderRef ref="Console"/>
-    </Logger>
-    <Root level="DEBUG">
+    <Root level="TRACE">
       <AppenderRef ref="Console"/>
-    </Root> 
+    </Root>
+    <Logger name="io.javalin" level="WARN"/>
+    <Logger name="org.eclipse.jetty" level="WARN"/>
+    <Logger name="org.sql2o" level="WARN"/>
+    <Logger name="com.zaxxer" level="WARN"/>
+    <Logger name="org.mariadb" level="WARN"/>
   </Loggers>
 </Configuration>

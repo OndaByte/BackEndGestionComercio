@@ -2,18 +2,15 @@ package com.OndaByte.GestionComercio.modelo;
 
 import com.fasterxml.jackson.annotation.*;
 
-/**
- * Usuario
- *
- * @author Fran
- */
 public class Usuario extends ObjetoBD {
 
-    private String contra;
     private String usuario;
+    private String contra;
 
+    public Usuario(){}
+    
     @JsonCreator
-    public Usuario(@JsonProperty("user") String usuario, @JsonProperty("pass") String contra){
+    public Usuario(@JsonProperty("usuario") String usuario, @JsonProperty("contra") String contra){
         this.usuario=usuario;
         this.contra=contra;
     }
@@ -35,7 +32,6 @@ public class Usuario extends ObjetoBD {
     }
 
     public String toString() {
-        return "{" + super.toString() + " \"contra\" : \"" + this.contra + "\", \"usuario\" : \"" + this.usuario + "\"}";
+        return "{"+super.toString()+" \"usuario\" : \""+usuario+", \"contra\" : \""+contra+"\"}";
     }
-
 }
