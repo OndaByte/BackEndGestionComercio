@@ -1,65 +1,188 @@
 package com.OndaByte.GestionComercio;
-import com.OndaByte.GestionComercio.control.CajaControl;
-import com.OndaByte.GestionComercio.control.ProductoControl;
-import com.OndaByte.GestionComercio.control.UsuarioControl;
-import com.OndaByte.GestionComercio.filtros.FiltroAutenticador;
+
+import com.OndaByte.GestionComercio.DAO.DAOGasto;
+import com.OndaByte.GestionComercio.control.*;
+import com.OndaByte.config.ConfiguracionGeneral;
 import com.OndaByte.config.Constantes;
 
 import io.javalin.Javalin;
+import io.javalin.community.ssl.SslPlugin;
+import static io.javalin.apibuilder.ApiBuilder.*;
+
 import java.io.File;
+import java.time.LocalDate;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
  
-/**
- * App
- * Autor: Fran
- */
 public class App {
+  private static Logger logger = LogManager.getLogger(App.class.getName());
+  private static Javalin app;
 
-    private static Logger logger = LogManager.getLogger(App.class.getName());
+  public static void main(String[] args) {
+    ConfiguracionGeneral.init();
+    String strPath = App.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+    String log4jConfigPath = strPath.replace(Constantes.JAR_FILE, "classes"+File.separator) + Constantes.CONFIG_LOG_FILE;
+    Configurator.initialize(null, log4jConfigPath);        
+        
+    // FIN config Log4j del archivo XML
+    logger.debug("Init Server");  
+    int puerto = Integer.parseInt(ConfiguracionGeneral.getCONFIG_HTTP_API_PORT());
 
-    public static void main(String[] args) {
+    int ssl = Integer.parseInt(ConfiguracionGeneral.getCONFIG_SSL());
+    
+    app = Javalin.create(config -> {
+        if(ssl !=0) {
+          config.registerPlugin(new SslPlugin(conf -> {
+                conf.pemFromPath("/etc/ssl/domain.cert.pem", "/etc/ssl/private.key.pem");
+                conf.insecure = false;
+                conf.securePort = puerto;
+          }));
+        }
         
-        String strPath = App.class.getProtectionDomain().getCodeSource().getLocation().getFile();
-        String log4jConfigPath = strPath.replace(Constantes.JAR_FILE, "classes"+File.separator) + Constantes.CONFIG_LOG_FILE;
-        Configurator.initialize(null, log4jConfigPath );        
-        
-        // FIN config Log4j del archivo XML
-        logger.debug("Init Server");  
-       
-        Javalin app = Javalin.create(config -> {
-                config.bundledPlugins.enableCors(cors -> {
-                        cors.addRule(x -> {x.anyHost();});
+        config.bundledPlugins.enableCors(cors -> {cors.addRule(x -> {x.anyHost();});});
+        config.router.apiBuilder(()->{
+            path("/p",()->{
+                before(FiltroAutenticador::filtroLogin);
+                
+                put("/actualizar", UsuarioControlador::cambiarContra);
+
+                path("/e",()->{
+                    before(FiltroAutenticador::filtroEmpleado);
+                    
+                    path("/caja",()->{
+                        post("/movimiento",CajaControlador::movimiento);
+                        post("/{id}",CajaControlador::abrir);
+                        put("/{id}",CajaControlador::cerrar);
+                        get(CajaControlador::filtrar);
+                        //  get("/{id}",CajaControlador::movimientosCaja);
+                        get("/movimientos",CajaControlador::movimientosCajaOP);
+                        get("/resumen",CajaControlador::resumenCaja);
                     });
-            }).start(4567);
+                    
+                    path("/empleado",()->{
+                        get("/filtrar",EmpleadoControlador::filtrar);
+                        put("/{id}", EmpleadoControlador::modificar);
+                        delete("/{id}", EmpleadoControlador::baja);
+                        get("/{id}", EmpleadoControlador::buscar);
+                        post(EmpleadoControlador::alta);
+                        get(EmpleadoControlador::filtrarPaginado);
+                    });
+                    
+                    path("/cliente",()->{
+                        get("/filtrar",ClienteControlador::filtrar);
+                        put("/{id}", ClienteControlador::modificar);
+                        delete("/{id}", ClienteControlador::baja);
+                        get("/{id}", ClienteControlador::buscar);
+                        post(ClienteControlador::alta);
+                        get(ClienteControlador::filtrarPaginado);
+                    });
+                    
+                    path("/pedido",()->{
+                        put("/{id}/actualizar", PedidoControlador::actualizar);
+                        put("/{id}", PedidoControlador::modificar);
+                        delete("/{id}", PedidoControlador::baja);
+                        post(PedidoControlador::alta);
+                        get(PedidoControlador::filtrarDetalladoPaginado);
+                    });
+                    
+                    path("/insumo",()->{
+                        put("/{id}",InsumoControlador::modificar);
+                        delete(InsumoControlador::baja);
+                        get(InsumoControlador::filtrarPaginado);
+                        post(InsumoControlador::alta);
+                    });
+                    
+                    path("/presupuesto",()->{
+                        delete("/{id}",PresupuestoControlador::baja);
+                        get(PresupuestoControlador::filtrarDetalladoPaginado);
+                        get("/{id}",PresupuestoControlador::buscarDetallado);
+                        post(PresupuestoControlador::alta);
+                        put("/{id}/actualizar",PresupuestoControlador::actualizar);
+                        put("/{id}",PresupuestoControlador::editar);
+                                                
+                    });
+                    
+                    path("/orden",()->{
+                        //post(OrdenControlador::alta);
+                        //put("/{id}", OrdenControlador::actualizar);
+                        get("/cant", OrdenControlador::cantEstado);
+                        get(OrdenControlador::filtrarDetalladoPaginado);
+                        put("/{id}/actualizar",OrdenControlador::actualizar);
+                    });
+                    
+                    path("/remito",()->{
+                        post(RemitoControlador::alta);
+                        put("/{id}",RemitoControlador::editar);
+                        get(RemitoControlador::filtrarDetalladoPaginado);
+                        put("/{id}/actualizar",RemitoControlador::actualizar);
+                        get("/{id}",RemitoControlador::buscarDetallado);
+                        
+                    });
+                    
+                    path("/periodo",()->{
+                        delete("/{id}", PeriodoControlador::baja);
+                        get(PeriodoControlador::filtrarDetalladoPaginado);
+                    });
+                    
+                    path("/gasto",()->{
+                        delete("/{id}", GastoControlador::baja);
+                        put("/{id}", GastoControlador::modificar);
+                        post(GastoControlador::alta);
+                    });
+                    
+                    path("/turno",()->{
+                        get(TurnoControlador::filtrarDetalladoPaginado);
+                        put("/{id}",TurnoControlador::modificar);
+                        post("/{tipo}",TurnoControlador::altaConAsignacion);
+                        get("/cant",TurnoControlador::cantEstado);
+                        //delete("/{id}",TurnoControlador::baja);
+                    });
+                });
+                
+                path("/a",()->{
+                    before(FiltroAutenticador::filtroAdmin);
+                    
+                    path("/caja",()->{
+                        post(CajaControlador::alta);
+                        delete("{id}",CajaControlador::baja);
+                    });
+                    
+                    path("/usuario",()->{
+                        delete("/{id}", UsuarioControlador::baja);
+                        put("/{id}", UsuarioControlador::modificar);
+                        put("/{id}/rol", UsuarioControlador::cambiarRol);
+                        get("/filtrar", UsuarioControlador::filtrar);
+                        get(UsuarioControlador::filtrarPaginado);
+                      });
+                  });
 
-        // Rutas protegidas
-        app.before("/protegido/*", FiltroAutenticador::filtro);
-        app.post("/protegido/actualizar", UsuarioControl::cambiarcontra);
-        app.get("/protegido/usuarios", UsuarioControl::usuarios);
-        app.post("/protegido/eliminar", UsuarioControl::baja);
+              });
 
-        // Rutas públicas de usuario
-        app.post("/registrar", UsuarioControl::registrar);
-        app.get("/login", UsuarioControl::loginForm);
-        app.post("/login", UsuarioControl::login);
+          });
+      }).start(puerto);
+    // Rutas públicas de usuario
+    app.post("/registrar", UsuarioControlador::registrar);
+    app.post("/login", UsuarioControlador::login);
 
-        // Rutas para productos
-        app.get("/Productos", ProductoControl::listar);
-        app.post("/Productos/Alta", ProductoControl::alta);
-        app.patch("/Productos/{id}/SumarStock", ProductoControl::sumarStock); // Cambiado a PATCH por ser actualización parcial
-        app.delete("/Productos/{id}", ProductoControl::baja);
-        app.put("/Productos/{id}/Modificar", ProductoControl::modificar); // Cambiado a PUT por ser una actualización completa
+    //Esta no se si ponerla protegida o no, en teoria si, empleado/admin?
+    app.get("/salir", (x -> {salir();  System.exit(0);}));
+    generarPeriodosAutomatico();
+  }
 
-		// Rutas Caja
-		app.post("/AbrirCaja", CajaControl::abrirCaja);
-		app.get("/Caja", CajaControl::getCaja);
-		app.patch("/CerrarCaja", CajaControl::cerrarCaja);
-		app.get("/Cajas", CajaControl::getCajas);
-		app.get("/Caja/{id}", CajaControl::getMovimientos);
-		app.get("/Transacciones", CajaControl::getMovimientosFechas);
+  public static int salir(){
+    System.out.println("salida");
+    app.stop();
+    ConfiguracionGeneral.setInicializado(false);
+    return 0;
+  }
 
-    }
+  private static void generarPeriodosAutomatico() {
+    Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
+        DAOGasto.generarPeriodos(LocalDate.now());
+      }, 0, 1, TimeUnit.DAYS); // Diario
+  }
 }

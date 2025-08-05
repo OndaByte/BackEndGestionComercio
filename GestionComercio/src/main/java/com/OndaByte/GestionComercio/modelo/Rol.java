@@ -1,11 +1,5 @@
 package com.OndaByte.GestionComercio.modelo;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Rol
- */
 public class Rol {
     private int id;
     private String nombre;
@@ -14,7 +8,7 @@ public class Rol {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -24,10 +18,5 @@ public class Rol {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
-    }
-
-    
-    public String toString(){
-        return "{ \"id\" : "+id+", \"nombre\" : \""+nombre+"\" }";
     }
 }

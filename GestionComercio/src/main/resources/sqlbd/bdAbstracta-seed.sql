@@ -1,59 +1,161 @@
--- Inserciones en Usuario
-INSERT INTO Usuario (id, usuario, contra) VALUES (1, 'usuario1', 'contra1');
-INSERT INTO Usuario (id, usuario, contra) VALUES (2, 'usuario2', 'contra2');
-INSERT INTO Usuario (id, usuario, contra) VALUES (3, 'usuario3', 'contra3');
-INSERT INTO Usuario (id, usuario, contra) VALUES (4, 'usuario4', 'contra4');
-INSERT INTO Usuario (id, usuario, contra) VALUES (5, 'usuario5', 'contra5');
+-- Inserciones para Rol
+INSERT INTO Rol (nombre) VALUES
+('ADMIN'),
+('EMPLEADO'),
+('USUARIO');
 
--- Inserciones en la tabla Rol
-INSERT INTO Rol (nombre) VALUES ('Admin');
-INSERT INTO Rol (nombre) VALUES ('User');
-INSERT INTO Rol (nombre) VALUES ('Guest');
+-- Inserciones para Permiso
+INSERT INTO Permiso (nombre) VALUES
+('CLIENTE_ALTA'),
+('CLIENTE_BAJA'),
+('CLIENTE_LISTAR'),
+('CLIENTE_MODIFICAR'),
+('EMPLEADO_ALTA'),
+('EMPLEADO_BAJA'),
+('EMPLEADO_LISTAR'),
+('EMPLEADO_MODIFICAR'),
+('GASTO_ALTA'),
+('GASTO_BAJA'),
+('GASTO_LISTAR'),
+('GASTO_MODIFICAR'),
+('INSUMO_ALTA'),
+('INSUMO_BAJA'),
+('INSUMO_LISTAR'),
+('INSUMO_MODIFICAR'),
+('ORDEN_ALTA'),
+('ORDEN_BAJA'),
+('ORDEN_LISTAR'),
+('ORDEN_MODIFICAR'),
+('PEDIDO_ALTA'),
+('PEDIDO_BAJA'),
+('PEDIDO_LISTAR'),
+('PEDIDO_MODIFICAR'),
+('PRESUPUESTO_ALTA'),
+('PRESUPUESTO_BAJA'),
+('PRESUPUESTO_LISTAR'),
+('PRESUPUESTO_MODIFICAR'),
+('TURNO_ALTA'),
+('TURNO_BAJA'),
+('TURNO_LISTAR'),
+('TURNO_MODIFICAR'),
+('USUARIO_ALTA'),
+('USUARIO_BAJA'),
+('USUARIO_LISTAR'),
+('USUARIO_MODIFICAR');
 
--- Inserciones en la tabla Permiso
-INSERT INTO Permiso (nombre) VALUES ('Leer');
-INSERT INTO Permiso (nombre) VALUES ('Escribir');
-INSERT INTO Permiso (nombre) VALUES ('Eliminar');
+-- Asignar permisos a roles
+INSERT INTO RolPermiso (rol_id, permiso_id) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
+(1, 6),
+(1, 7),
+(1, 8),
+(1, 9),
+(1, 10),
+(1, 11),
+(1, 12),
+(1, 13),
+(1, 14),
+(1, 15),
+(1, 16),
+(1, 17),
+(1, 18),
+(1, 19),
+(1, 20),
+(1, 21),
+(1, 22),
+(1, 23),
+(1, 24),
+(1, 25),
+(1, 26),
+(1, 27),
+(1, 28),
+(1, 29),
+(1, 30),
+(1, 31),
+(1, 32),
+(1, 33),
+(1, 34),
+(1, 35),
+(1, 36),
+(2, 1), -- Empleado puede dar de ALTA un cliente
+(2, 3), -- Empleado puede LISTAR los cliente
+(2, 4), -- Empleado puede MODIFICAR un cliente
+(2, 21), -- Empleado puede dar de ALTA pedido
+(2, 23), -- Empleado puede LISTAR los pedidos
+(2, 24), -- Empleado puede MODIFICAR un pedido
+(2, 15), -- Empleado puede LISTAR los insumos
+(2, 16), -- Empleado puede MODIFICAR un insumo
+(2, 17), -- Empleado puede dar de ALtA una orden
+(2, 19), -- Empleado puede actualizar orden ¿CUAL ES LA DIFERENCIA? (LISTAR)
+(2, 20), -- Empleado puede MODIFICAR una orden
+(2, 36), -- Empleado deberia poder cambiar su contra
+(3, 36); -- Usuario deberia poder cambiar su contra
 
--- Inserciones en la tabla Usuario_Rol
-INSERT INTO UsuarioRol (usuario_id, rol_id) VALUES (1, 1); -- usuario1 es Admin
-INSERT INTO UsuarioRol (usuario_id, rol_id) VALUES (5, 1); -- usuario5 es Admin
-INSERT INTO UsuarioRol (usuario_id, rol_id) VALUES (2, 2); -- usuario2 es User
-INSERT INTO UsuarioRol (usuario_id, rol_id) VALUES (3, 3); -- usuario3 es Guest
+-- Inserciones para Cliente
+INSERT INTO `Cliente`
+(`nombre`, `email`, `dni`, `cuit_cuil`, `telefono`, `direccion`, `localidad`, `codigo_postal`, `provincia`, `cond_iva`)
+VALUES
+    ('Juan Pérez','cliente@hotmail.com', '12345678', '20-12345678-9', '1123456789', 'Av. Siempre Viva 123', 'Ciudad de Buenos Aires', '1400', 'Buenos Aires', 'RESPONSABLE INSCRIPTO'),
+    ('María Gómez','cliente2@yahoo.com', '23456789', '27-23456789-0', '1134567890', 'Calle Falsa 456', 'La Plata', '1900', 'Buenos Aires', 'MONOTRIBUTISTA'),
+    ('Carlos López','cliente3@gmail.com', '34567890', '20-34567890-1', '1145678901', 'Av. Libertador 789', 'Mendoza', '5500', 'Mendoza', 'EXENTO');
 
--- Inserciones en la tabla Rol_Permiso
-INSERT INTO RolPermiso (rol_id, permiso_id) VALUES (1, 1); -- Admin tiene permiso Leer
-INSERT INTO RolPermiso (rol_id, permiso_id) VALUES (1, 2); -- Admin tiene permiso Escribir
-INSERT INTO RolPermiso (rol_id, permiso_id) VALUES (1, 3); -- Admin tiene permiso Eliminar
-INSERT INTO RolPermiso (rol_id, permiso_id) VALUES (2, 1); -- User tiene permiso Leer
-INSERT INTO RolPermiso (rol_id, permiso_id) VALUES (3, 1); -- Guest tiene permiso Leer
+-- Inserciones para Insumo
+INSERT INTO Insumo (nombre, precio, stock) VALUES
+('Pintura Roja', 50.00, 100),
+('Tornillos 3mm', 5.00, 500);
+
+-- Inserciones para Empleado
+INSERT INTO Empleado (dni, nombre, telefono, direccion) VALUES
+('22334455', 'Carlos Gómez', '333333333', 'Calle Industrial 789'),
+('33445566', 'Ana Fernández', '444444444', 'Av. Comercial 321');
+
+-- Inserciones para Recurso
+-- INSERT INTO Recurso (orden_id, insumo_id, empleado_id) VALUES
+-- (1, 1, 1),
+-- (2, 2, 2);
+
+INSERT INTO Usuario
+(estado,usuario,contra)
+VALUES
+("ACTIVO", "fran", "$2a$10$GwuLXIm2pFBq5KOUc27VjOqiNAv.sQ3rj8YgwooVcF7vxGgeviEr2"),
+("ACTIVO", "fran2", "$2a$10$3Y0ACtiagET0hasOs2zs3OXFj18gUGZX247OeNQS6DW0M..IcVbKO"),
+("ACTIVO", "fran3", "$2a$10$idqTko6.OM4hxae7Omn/3OZqCNSUtsnMWWQ2w7G1GaOcqVVdJVc8u"),
+("ACTIVO", "luc", "$2a$10$FBfutjjtgqDw7mDPhe16V.SUI9rZm.sxMLr1UVc6piarjV045NDwa"),
+("ACTIVO", "moc", "$2a$10$h6VonR5UlST/KMQcVKoUOOyWMT9iTEAyT.sqiVU3dpyA1uyaAF2D2");
+
+INSERT INTO UsuarioRol
+(usuario_id,rol_id)
+VALUES
+(1,1),
+(2,2),
+(3,3),
+(4,1),
+(5,1);
+
+-- Inserciones en GastoFijo
+INSERT INTO GastoFijo (nombre, inicio, repeticion) VALUES
+('Alquiler Oficina', '2025-01-01', 3),   -- mensual
+('Licencia Software', '2025-02-15', 8),  -- anual
+('Comida Dia', '2025-02-15', 0),  -- diario
+('Limpieza Semanal', '2025-05-01', 1);   -- semanal
+
+-- Periodos para 'Alquiler Oficina' (mensual)
+INSERT INTO Periodo (gasto_id, periodo, costo) VALUES
+(1, '2025-01-01', 1200),
+(2, '2025-01-01', 500),
+(3, '2025-01-01', 50);
+
+UPDATE GastoFijo SET estado='INACTIVO' WHERE id = 3;
+
+INSERT INTO Caja (estado_caja, nombre, sesion_actual) VALUES
+("CERRADA", 'Caja 1', NULL);
 
 
-INSERT INTO Producto (nombre, precio_costo, precio_venta, stock_actual, stock_frizado, ingredientes_receta)
-VALUES 
-('Pizza Margherita', 3.50, 8.00, 50, 10, 'Harina, Agua, Tomate, Mozzarella, Albahaca'),
-('Empanadas de Carne', 1.20, 3.00, 100, 20, 'Carne, Cebolla, Huevo, Aceituna, Masa'),
-('Hamburguesa Clasica', 2.00, 5.50, 70, 15, 'Carne de res, Lechuga, Tomate, Queso, Pan'),
-('Sushi Roll', 4.00, 12.00, 40, 5, 'Arroz, Alga nori, Salmin, Aguacate, Pepino'),
-('Lasania de Carne', 3.80, 9.50, 30, 8, 'Pasta, Carne, Tomate, Mozzarella, Bechamel');
-
-
--- Inserciones en la tabla Caja
-INSERT INTO Caja (dinero_inicial, dinero_total, fecha_cierre, estado) VALUES
-(100.0, 200.0, NULL, 'ACTIVO'),
-(200.0, 400.0, NULL, 'ACTIVO');
-
--- Inserciones en la tabla Movimiento
-INSERT INTO Movimiento (caja_id, descripcion, total, estado) VALUES
-(1, 'Apertura de caja', 100.0, 'ACTIVO'),
-(2, 'Ingreso por ventas', 200.0, 'ACTIVO');
-
--- Inserciones en la tabla Venta
-INSERT INTO Venta (caja_id, metodo_pago, total, fecha_pago, estado) VALUES
-(1, 'Efectivo', 50.0, CURRENT_TIMESTAMP, 'ACTIVO'),
-(2, 'Tarjeta', 100.0, CURRENT_TIMESTAMP, 'ACTIVO');
-
--- Inserciones en la tabla Items_venta
-INSERT INTO ItemVenta (producto_id, venta_id, cantidad, subtotal, estado) VALUES
-(1, 1, 3, 4.5, 'ACTIVO'),
-(2, 2, 2, 2.4, 'ACTIVO');
+-- INSERT INTO SesionCaja (monto_inicial,caja_id,cajero_id) VALUES (0,1,1);
+-- INSERT INTO Movimiento (tipo_mov,descripcion,total,sesion_caja_id) VALUES ("VENTA",NULL,200,1);
+-- INSERT INTO Movimiento (tipo_mov,descripcion,total,sesion_caja_id) VALUES ("VENTA",NULL,100,1);
+-- INSERT INTO Movimiento (tipo_mov,descripcion,total,sesion_caja_id) VALUES ("VENTA",NULL,100,1);
