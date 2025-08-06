@@ -96,6 +96,13 @@ public class App {
                         post(InsumoControlador::alta);
                     });
                     
+                    path("/producto",()->{
+                        put("/{id}",ProductoControlador::modificar);
+                        delete(ProductoControlador::baja);
+                        get(ProductoControlador::filtrarPaginado);
+                        post(ProductoControlador::alta);
+                    });
+                    
                     path("/presupuesto",()->{
                         delete("/{id}",PresupuestoControlador::baja);
                         get(PresupuestoControlador::filtrarDetalladoPaginado);

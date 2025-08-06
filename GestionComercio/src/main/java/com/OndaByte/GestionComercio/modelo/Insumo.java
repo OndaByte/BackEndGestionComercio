@@ -1,7 +1,6 @@
 package com.OndaByte.GestionComercio.modelo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true) // Ignorá cualquier campo extra en el JSON
