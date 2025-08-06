@@ -100,6 +100,7 @@ public class ClienteControlador {
         try {
             String id = ctx.pathParam("id");
             logger.debug("Modificar: "+ctx.body());
+
             Cliente nuevo = ctx.bodyAsClass(Cliente.class);
             if (id == null || id.isEmpty()) {
                 ctx.status(400).result(buildRespuesta(400, null, "ID requerido"));
@@ -117,11 +118,11 @@ public class ClienteControlador {
             nuevo.setId(Integer.parseInt(id));
             nuevo.setCond_iva(nuevo.getCond_iva().toUpperCase());            
             
-            if(!aux.getDni().equals(nuevo.getDni()) || !aux.getCuit_cuil().equals(nuevo.getCuit_cuil())){
-                ctx.status(400).result(buildRespuesta(400, null, "No puede modificar el dni o cuil/cuit del cliente"));
-                logger.debug("Modificar res: "+400);
-                return;
-            }
+//            if(!aux.getDni().equals(nuevo.getDni()) || !aux.getCuit_cuil().equals(nuevo.getCuit_cuil())){
+//                ctx.status(400).result(buildRespuesta(400, null, "No puede modificar el dni o cuil/cuit del cliente"));
+//                logger.debug("Modificar res: "+400);
+//                return;
+//            }
             if (dao.modificar(nuevo)) {
                 ctx.status(201).result(buildRespuesta(201, null, "Modificación exitosa"));
                 logger.debug("Modificar res: "+201);
@@ -239,7 +240,7 @@ public class ClienteControlador {
     
     private static boolean validarCliente(Cliente c){
         try{
-            return !(c.getNombre().isEmpty() || c.getDni().isEmpty() || c.getCuit_cuil().isEmpty() || !c.getNombre().matches("[\\p{L} ]+")|| !c.getDni().matches("[0-9]+")|| !c.getCuit_cuil().matches("[0-9]+"));
+            return !(c.getNombre().isEmpty() || !c.getNombre().matches("[\\p{L} ]+")|| !c.getDni().matches("[0-9]+")|| !c.getCuit_cuil().matches("[0-9]+"));
             
         }catch(NullPointerException e){    
             return false;

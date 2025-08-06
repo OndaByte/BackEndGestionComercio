@@ -3,6 +3,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS Recurso;
 DROP TABLE IF EXISTS Empleado;
 DROP TABLE IF EXISTS Insumo;
+DROP TABLE IF EXISTS Producto;
+DROP TABLE IF EXISTS Categoria;
 DROP TABLE IF EXISTS Orden;
 DROP TABLE IF EXISTS ItemPresupuesto;
 DROP TABLE IF EXISTS ItemRemito;
@@ -74,8 +76,8 @@ CREATE TABLE Cliente(
 
     nombre VARCHAR(99) NOT NULL,
     email VARCHAR(50) DEFAULT NULL,
-    dni VARCHAR(50) NOT NULL UNIQUE,
-    cuit_cuil VARCHAR(50) NOT NULL UNIQUE,
+    dni VARCHAR(50) DEFAULT NULL,
+    cuit_cuil VARCHAR(50) DEFAULT NULL,
     telefono VARCHAR(50) DEFAULT NULL,
     direccion VARCHAR(50) DEFAULT NULL,
     localidad VARCHAR(50) DEFAULT NULL,
@@ -304,18 +306,35 @@ CREATE TABLE ItemRemito(
     FOREIGN KEY (remito_id) REFERENCES Remito(id)
 );
 
-/*
+CREATE TABLE Categoria (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE Producto (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",    nombre VARCHAR(100) NOT NULL,
+    codigo_barra VARCHAR(200) DEFAULT NULL UNIQUE,
+    descripcion TEXT,
+    precio DECIMAL(10,2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    categoria_id INT NOT NULL,
+    FOREIGN KEY (categoria_id) REFERENCES Categoria(id)
+);
+
 CREATE TABLE ItemVenta(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    
     precio_unitario FLOAT NOT NULL DEFAULT 0,
     cantidad INT NOT NULL DEFAULT 0,
-    movimiento_id INT NOT NULL NULL,
+    movimiento_id INT NOT NULL,
     producto_id INT NOT NULL,
     FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE,
     FOREIGN KEY (producto_id) REFERENCES Producto(id)
 );
 
+/*
 CREATE TABLE ItemMovimiento(
     id INT AUTO_INCREMENT PRIMARY KEY,
     
