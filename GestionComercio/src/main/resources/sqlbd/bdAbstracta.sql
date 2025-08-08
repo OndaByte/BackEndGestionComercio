@@ -310,7 +310,7 @@ BEGIN
        SET MESSAGE_TEXT = 'No se puede crear movimiento, sesion cerrada';
     END IF;
 END;
-
+/*
 CREATE TRIGGER alta_movimiento_gasto
 AFTER UPDATE ON Periodo
 FOR EACH ROW
@@ -335,9 +335,9 @@ BEGIN
         END IF;
     END IF;
 
-END;
+END;*/
 
-CREATE TRIGGER alta_movimiento_remito
+CREATE TRIGGER alta_movimiento_gasto
 BEFORE UPDATE ON Periodo
 FOR EACH ROW
 BEGIN
