@@ -188,29 +188,13 @@ CREATE TABLE Producto (
     precio_costo DECIMAL(10,2) NOT NULL,
     porcentaje_ganancia INT NOT NULL,
     porcentaje_descuento INT NOT NULL,
-    categoria_id DECIMAL(10,2) NOT NULL,
     precio DECIMAL(10,2) NOT NULL, -- opcional si no no lo ponemos por que al final se le pueden aplicar mas descuentos de las otras cosas asique es medio al pedo
     stock INT NOT NULL DEFAULT 0,
     categoria_id INT NOT NULL,
     FOREIGN KEY (categoria_id) REFERENCES Categoria(id)
 );
 
-   
-CREATE TABLE ItemVenta (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",    nombre VARCHAR(100) NOT NULL,
-
-    movimiento_id INT NOT NULL, 
-    producto_id INT NOT NULL,
-    cantidad INT NULL,
-    precio  FLOAT DEFAULT 0 NOT NULL,
-    porcentaje_descuento FLOAT DEFAULT 0,
-
-    FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE,
-    FOREIGN KEY (producto_id) REFERENCES Producto(id)
-);
+  
 
 CREATE TABLE Movimiento (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -228,6 +212,21 @@ CREATE TABLE Movimiento (
     FOREIGN KEY (sesion_caja_id) REFERENCES SesionCaja(id) ON DELETE CASCADE
 );
 
+CREATE TABLE ItemVenta (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",    nombre VARCHAR(100) NOT NULL,
+
+    movimiento_id INT NOT NULL, 
+    producto_id INT NOT NULL,
+    cantidad INT NULL,
+    precio  FLOAT DEFAULT 0 NOT NULL,
+    porcentaje_descuento FLOAT DEFAULT 0,
+
+    FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES Producto(id)
+);
 DROP TRIGGER IF EXISTS nueva_sesion_caja;
 DROP TRIGGER IF EXISTS cerrar_sesion_caja;
 DROP TRIGGER IF EXISTS alta_sesion_valida;
@@ -310,32 +309,6 @@ BEGIN
        SET MESSAGE_TEXT = 'No se puede crear movimiento, sesion cerrada';
     END IF;
 END;
-/*
-CREATE TRIGGER alta_movimiento_gasto
-AFTER UPDATE ON Periodo
-FOR EACH ROW
-BEGIN
-    DECLARE sesion_abierta_id INT;
-    IF NEW.fecha_pago IS NOT NULL AND OLD.fecha_pago IS NULL THEN   
-        SELECT id INTO sesion_abierta_id
-        FROM SesionCaja
-        WHERE cierre IS NULL
-        ORDER BY apertura DESC
-        LIMIT 1;
-
-        IF sesion_abierta_id IS NOT NULL THEN
-            INSERT INTO Movimiento (
-                tipo_mov, descripcion, total, sesion_caja_id
-            ) VALUES (
-                'EGRESO',
-                CONCAT('Alta de Gasto Fijo: ', NEW.nombre),
-                NEW.costo,
-                sesion_abierta_id
-            );
-        END IF;
-    END IF;
-
-END;*/
 
 CREATE TRIGGER alta_movimiento_gasto
 BEFORE UPDATE ON Periodo
