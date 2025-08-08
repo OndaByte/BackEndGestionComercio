@@ -96,6 +96,9 @@ CREATE TABLE Periodo(
     id INT AUTO_INCREMENT UNIQUE,
     estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
+    movimiento_id INT NULL,
+    fecha_pago TIMESTAMP DEFAULT NULL,
+
     costo FLOAT DEFAULT 0,
     gasto_id INT NOT NULL,
     periodo DATE NOT NULL,
@@ -168,11 +171,6 @@ CREATE TABLE DescuentoCategoria (
 */
 CREATE TABLE Categoria (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL UNIQUE
-
-);
-CREATE TABLE Categoria (
-    id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     tipo ENUM('PRODUCTO', 'CLIENTE') NOT NULL, -- pára tipo de prodicto y tipo de cliente por si escala 
     categoria_padre_id INT DEFAULT NULL,
@@ -219,16 +217,13 @@ CREATE TABLE Movimiento (
     creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     estado ENUM("ACTIVO", "INACTIVO") DEFAULT "ACTIVO",
+    cliente_id INT DEFAULT NULL,
+    sesion_caja_id INT NOT NULL,
 
     tipo_mov ENUM("VENTA", "INGRESO", "EGRESO") DEFAULT "VENTA",
     descripcion VARCHAR(255) DEFAULT NULL,
     total DECIMAL(12,2) NOT NULL,
-
-    descuento_percent FLOAT DEFAULT 0, -- descuento global
-
-    cliente_id INT DEFAULT NULL,
-    sesion_caja_id INT NOT NULL,
-
+    porcentaje_descuento FLOAT DEFAULT 0, -- descuento global
     FOREIGN KEY (cliente_id) REFERENCES Cliente(id),
     FOREIGN KEY (sesion_caja_id) REFERENCES SesionCaja(id) ON DELETE CASCADE
 );
@@ -317,30 +312,67 @@ BEGIN
 END;
 
 CREATE TRIGGER alta_movimiento_gasto
-AFTER INSERT ON GastoFijo
+AFTER UPDATE ON Periodo
 FOR EACH ROW
 BEGIN
     DECLARE sesion_abierta_id INT;
+    IF NEW.fecha_pago IS NOT NULL AND OLD.fecha_pago IS NULL THEN   
+        SELECT id INTO sesion_abierta_id
+        FROM SesionCaja
+        WHERE cierre IS NULL
+        ORDER BY apertura DESC
+        LIMIT 1;
 
-    -- Buscar la sesión de caja abierta más reciente
-    SELECT id INTO sesion_abierta_id
-    FROM SesionCaja
-    WHERE cierre IS NULL
-    ORDER BY apertura DESC
-    LIMIT 1;
+        IF sesion_abierta_id IS NOT NULL THEN
+            INSERT INTO Movimiento (
+                tipo_mov, descripcion, total, sesion_caja_id
+            ) VALUES (
+                'EGRESO',
+                CONCAT('Alta de Gasto Fijo: ', NEW.nombre),
+                NEW.costo,
+                sesion_abierta_id
+            );
+        END IF;
+    END IF;
 
-    -- Si hay sesión, crear movimiento
-    IF sesion_abierta_id IS NOT NULL THEN
-        INSERT INTO Movimiento (
-            tipo_mov, descripcion, total, sesion_caja_id
-        ) VALUES (
-            'EGRESO',
-            CONCAT('Alta de Gasto Fijo: ', NEW.nombre),
-            0.0, -- se puede ajustar si querés meter costo inicial
-            sesion_abierta_id
-        );
+END;
+
+CREATE TRIGGER alta_movimiento_remito
+BEFORE UPDATE ON Periodo
+FOR EACH ROW
+BEGIN
+    DECLARE sesion_abierta_id INT;
+    IF NEW.fecha_pago IS NOT NULL AND OLD.fecha_pago IS NULL THEN   
+      
+        SELECT id INTO sesion_abierta_id
+        FROM SesionCaja
+        WHERE cierre IS NULL
+        ORDER BY apertura DESC
+        LIMIT 1;
+
+        IF sesion_abierta_id IS NOT NULL THEN
+            INSERT INTO Movimiento (
+                tipo_mov, descripcion, total, sesion_caja_id
+            ) VALUES (
+                'EGRESO',
+                CONCAT('Pago de GastoFijo ', NEW.gasto_id),
+                NEW.total,
+                sesion_abierta_id
+            );
+
+            SET NEW.movimiento_id = LAST_INSERT_ID();
+        ELSE
+            -- Si no hay sesión abierta, lanzar error personalizado
+            SIGNAL SQLSTATE '45002'
+            SET MESSAGE_TEXT = 'No se puede registrar el movimiento: no hay sesión de caja abierta.';
+        END IF;
     END IF;
 END;
+
+
+
+
+
 $$
 
 DELIMITER ;
