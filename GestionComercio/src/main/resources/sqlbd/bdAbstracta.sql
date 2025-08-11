@@ -146,7 +146,6 @@ CREATE TABLE SesionCaja(
     FOREIGN KEY (caja_id) REFERENCES Caja(id)
 );
 
-<<<<<<< HEAD
 CREATE TABLE Movimiento (
     id INT AUTO_INCREMENT PRIMARY KEY,
     creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -186,8 +185,6 @@ CREATE TABLE Venta (
     FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE
 );
 
-=======
->>>>>>> 7e55966fdd18c546c0a0a9887a1491b3fc1876e1
 /*
 CREATE TABLE DescuentoCategoria (
     id INT AUTO_INCREMENT PRIMARY KEY,
