@@ -129,36 +129,45 @@ CREATE TABLE SesionCaja(
     FOREIGN KEY (caja_id) REFERENCES Caja(id)
 );
 
-CREATE TABLE Movimiento(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
-
-    tipo_mov ENUM("VENTA", "INGRESO", "EGRESO") DEFAULT "VENTA",
-    descripcion VARCHAR(255) NULL, 
-    total DECIMAL(12,2) NOT NULL,
-    cliente_id INT DEFAULT NULL,
-    sesion_caja_id INT NOT NULL,
-    FOREIGN KEY (cliente_id) REFERENCES Cliente(id),
-    FOREIGN KEY (sesion_caja_id) REFERENCES SesionCaja(id) ON DELETE CASCADE
-);
-
 CREATE TABLE Movimiento (
     id INT AUTO_INCREMENT PRIMARY KEY,
     creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     estado ENUM("ACTIVO", "INACTIVO") DEFAULT "ACTIVO",
+    
     cliente_id INT DEFAULT NULL,
     sesion_caja_id INT NOT NULL,
 
     tipo_mov ENUM("VENTA", "INGRESO", "EGRESO") DEFAULT "VENTA",
     descripcion VARCHAR(255) DEFAULT NULL,
-    porcentaje_descuento FLOAT DEFAULT 0, 
     total DECIMAL(12,2) NOT NULL,
     FOREIGN KEY (cliente_id) REFERENCES Cliente(id),
     FOREIGN KEY (sesion_caja_id) REFERENCES SesionCaja(id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE Venta (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    
+    movimiento_id INT NOT NULL UNIQUE,
+    cliente_id INT DEFAULT NULL,
+
+    subtotal DECIMAL(12,2) NOT NULL,
+    porcentaje_descuento INT NOT NULL DEFAULT 0,
+    total DECIMAL(12,2) NOT NULL,
+    
+    forma_pago ENUM('EFECTIVO','TRANSFERENCIA') NOT NULL DEFAULT 'EFECTIVO',
+    punto_venta VARCHAR(10) DEFAULT NULL,
+    nro_comprobante VARCHAR(30) DEFAULT NULL,
+    -- efectivo_entregado DECIMAL(12,2) DEFAULT NULL,
+    -- vuelto DECIMAL(12,2) DEFAULT NULL,
+    observaciones VARCHAR(255) DEFAULT NULL,
+    FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE
+);
+
 /*
 CREATE TABLE DescuentoCategoria (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -169,12 +178,18 @@ CREATE TABLE DescuentoCategoria (
     FOREIGN KEY (categoria_id) REFERENCES Categoria(id)
 );
 */
+
 CREATE TABLE Categoria (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    
     nombre VARCHAR(100) NOT NULL,
-    tipo ENUM('PRODUCTO', 'CLIENTE') NOT NULL, -- pára tipo de prodicto y tipo de cliente por si escala 
-    categoria_padre_id INT DEFAULT NULL,
-    FOREIGN KEY (categoria_padre_id) REFERENCES Categoria(id)
+    porcentaje_descuento INT NOT NULL DEFAULT 0,
+    tipo ENUM('PRODUCTO', 'CLIENTE') NOT NULL, -- pára tipo de producto y tipo de cliente por si escala 
+    padre_id INT DEFAULT NULL,
+    FOREIGN KEY (padre_id) REFERENCES Categoria(id)
 );
 
 CREATE TABLE Producto (
@@ -182,51 +197,37 @@ CREATE TABLE Producto (
     creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
     estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
+    
+    categoria_id INT NOT NULL,
+
     nombre VARCHAR(100) NOT NULL,
     codigo_barra VARCHAR(200) DEFAULT NULL UNIQUE,
     descripcion TEXT DEFAULT NULL,
     precio_costo DECIMAL(10,2) NOT NULL,
     porcentaje_ganancia INT NOT NULL,
     porcentaje_descuento INT NOT NULL,
-    precio DECIMAL(10,2) NOT NULL, -- opcional si no no lo ponemos por que al final se le pueden aplicar mas descuentos de las otras cosas asique es medio al pedo
     stock INT NOT NULL DEFAULT 0,
-    categoria_id INT NOT NULL,
     FOREIGN KEY (categoria_id) REFERENCES Categoria(id)
 );
-
-  
-
-CREATE TABLE Movimiento (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    estado ENUM("ACTIVO", "INACTIVO") DEFAULT "ACTIVO",
-    cliente_id INT DEFAULT NULL,
-    sesion_caja_id INT NOT NULL,
-
-    tipo_mov ENUM("VENTA", "INGRESO", "EGRESO") DEFAULT "VENTA",
-    descripcion VARCHAR(255) DEFAULT NULL,
-    total DECIMAL(12,2) NOT NULL,
-    porcentaje_descuento FLOAT DEFAULT 0, -- descuento global
-    FOREIGN KEY (cliente_id) REFERENCES Cliente(id),
-    FOREIGN KEY (sesion_caja_id) REFERENCES SesionCaja(id) ON DELETE CASCADE
-);
+ 
 
 CREATE TABLE ItemVenta (
     id INT AUTO_INCREMENT PRIMARY KEY,
     creado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
-    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",    nombre VARCHAR(100) NOT NULL,
+    estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
 
-    movimiento_id INT NOT NULL, 
+    venta_id INT NOT NULL, 
     producto_id INT NOT NULL,
-    cantidad INT NULL,
-    precio  FLOAT DEFAULT 0 NOT NULL,
-    porcentaje_descuento FLOAT DEFAULT 0,
 
-    FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE,
+    nombre VARCHAR(100) NOT NULL,    
+    cantidad INT NULL,
+    porcentaje_descuento INT DEFAULT 0,
+    subtotal FLOAT DEFAULT 0 NOT NULL,
+    FOREIGN KEY (venta_id) REFERENCES Venta(id) ON DELETE CASCADE,
     FOREIGN KEY (producto_id) REFERENCES Producto(id)
 );
+
 DROP TRIGGER IF EXISTS nueva_sesion_caja;
 DROP TRIGGER IF EXISTS cerrar_sesion_caja;
 DROP TRIGGER IF EXISTS alta_sesion_valida;
@@ -329,7 +330,7 @@ BEGIN
             ) VALUES (
                 'EGRESO',
                 CONCAT('Pago de GastoFijo ', NEW.gasto_id),
-                NEW.total,
+                NEW.costo,
                 sesion_abierta_id
             );
 
@@ -341,8 +342,6 @@ BEGIN
         END IF;
     END IF;
 END;
-
-
 
 
 

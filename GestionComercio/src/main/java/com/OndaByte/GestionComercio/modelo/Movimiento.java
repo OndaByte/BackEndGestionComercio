@@ -4,12 +4,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Movimiento extends ObjetoBD {
 
-    private String tipo_mov;
-    private String descripcion = null;
-    private Integer cliente_id = null;
-    private Integer sesion_caja_id;
-    private Float total;
+    private Integer id;
 
+    @JsonProperty("cliente_id")
+    private Integer cliente_id;
+    @JsonProperty("sesion_caja_id")
+    private Integer sesion_caja_id;
+
+    @JsonProperty("tipo_mov")
+    private String tipo_mov;
+    @JsonProperty("descripcion")
+    private String descripcion;
+    @JsonProperty("total")
+    private Float total;
+    
     public Movimiento(){
     }
 
@@ -25,20 +33,12 @@ public class Movimiento extends ObjetoBD {
         this.total = total;
     }
 
-    public String getTipo_mov() {
-        return tipo_mov;
+    public Integer getId() {
+        return id;
     }
 
-    public void setTipo_mov(String tipo_mov) {
-        this.tipo_mov = tipo_mov;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Integer getCliente_id() {
@@ -57,6 +57,22 @@ public class Movimiento extends ObjetoBD {
         this.sesion_caja_id = sesion_caja_id;
     }
 
+    public String getTipo_mov() {
+        return tipo_mov;
+    }
+
+    public void setTipo_mov(String tipo_mov) {
+        this.tipo_mov = tipo_mov;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
     public Float getTotal() {
         return total;
     }
@@ -64,4 +80,5 @@ public class Movimiento extends ObjetoBD {
     public void setTotal(Float total) {
         this.total = total;
     }
+
 }
