@@ -38,7 +38,7 @@ public class ProductoControlador {
         boolean valido = true;
         if(p.getNombre() == null || p.getNombre().isEmpty())
             valido = false;
-        if(p.getPrecio() == null || p.getPrecio()< 0)
+        if(p.getPrecio_costo() == null || p.getPrecio_costo() < 0)
             valido = false;
         if(p.getStock() == null || p.getStock()< 0)
             valido=false;
