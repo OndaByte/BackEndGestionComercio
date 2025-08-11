@@ -107,16 +107,6 @@ VALUES
     ('María Gómez','cliente2@yahoo.com', '23456789', '27-23456789-0', '1134567890', 'Calle Falsa 456', 'La Plata', '1900', 'Buenos Aires', 'MONOTRIBUTISTA'),
     ('Carlos López','cliente3@gmail.com', '34567890', '20-34567890-1', '1145678901', 'Av. Libertador 789', 'Mendoza', '5500', 'Mendoza', 'EXENTO');
 
--- Inserciones para Insumo
-INSERT INTO Insumo (nombre, precio, stock) VALUES
-('Pintura Roja', 50.00, 100),
-('Tornillos 3mm', 5.00, 500);
-
--- Inserciones para Empleado
-INSERT INTO Empleado (dni, nombre, telefono, direccion) VALUES
-('22334455', 'Carlos Gómez', '333333333', 'Calle Industrial 789'),
-('33445566', 'Ana Fernández', '444444444', 'Av. Comercial 321');
-
 -- Inserciones para Recurso
 -- INSERT INTO Recurso (orden_id, insumo_id, empleado_id) VALUES
 -- (1, 1, 1),

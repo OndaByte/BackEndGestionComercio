@@ -1,7 +1,10 @@
 
 package com.OndaByte.GestionComercio.DAO;
 
-import com.OndaByte.GestionComercio.modelo.*;
+import com.OndaByte.GestionComercio.modelo.ItemRemito;
+import com.OndaByte.GestionComercio.modelo.Orden;
+import com.OndaByte.GestionComercio.modelo.Remito;
+import com.OndaByte.GestionComercio.modelo.Cliente;
 import org.sql2o.Connection;
 import org.sql2o.Sql2oException;
 import org.sql2o.Query;

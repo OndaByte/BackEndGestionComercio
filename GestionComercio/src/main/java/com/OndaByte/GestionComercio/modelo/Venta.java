@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author luciano
  */
 @JsonIgnoreProperties(ignoreUnknown = true) // Ignorá cualquier campo extra en el JSON
-public class Venta {
+public class Venta extends ObjetoBD {
     
     private Integer id;
     @JsonProperty("movimiento_id")
@@ -31,7 +31,7 @@ public class Venta {
     @JsonProperty("punto_venta")
     private String punto_venta;
     @JsonProperty("nro_comprobante")
-    private String nro_comprobante;
+    private Integer nro_comprobante;
     @JsonProperty("observaciones")
     private String observaciones;    
 
@@ -102,11 +102,11 @@ public class Venta {
         this.punto_venta = punto_venta;
     }
 
-    public String getNro_comprobante() {
+    public Integer getNro_comprobante() {
         return nro_comprobante;
     }
 
-    public void setNro_comprobante(String nro_comprobante) {
+    public void setNro_comprobante(Integer nro_comprobante) {
         this.nro_comprobante = nro_comprobante;
     }
 
