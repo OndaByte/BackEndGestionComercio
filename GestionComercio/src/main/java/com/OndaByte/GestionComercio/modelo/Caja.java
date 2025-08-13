@@ -7,27 +7,27 @@ public class Caja extends ObjetoBD{
 
     public Caja(){}
 
-	public String getEstado_caja() {
-		return estado_caja;
-	}
+    public String getEstado_caja() {
+            return estado_caja;
+    }
 
-	public void setEstado_caja(String estado_caja) {
-		this.estado_caja = estado_caja;
-	}
+    public void setEstado_caja(String estado_caja) {
+            this.estado_caja = estado_caja;
+    }
 
-	public String getNombre() {
-		return nombre;
-	}
+    public String getNombre() {
+            return nombre;
+    }
 
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
-	}
+    public void setNombre(String nombre) {
+            this.nombre = nombre;
+    }
 
-	public Integer getSesion_actual() {
-		return sesion_actual;
-	}
+    public Integer getSesion_actual() {
+            return sesion_actual;
+    }
 
-	public void setSesion_actual(Integer sesion_actual) {
-		this.sesion_actual = sesion_actual;
-	}
+    public void setSesion_actual(Integer sesion_actual) {
+            this.sesion_actual = sesion_actual;
+    }
 }

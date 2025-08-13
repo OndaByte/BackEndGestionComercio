@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true) // Ignorá cualquier campo extra en el JSON
 public class Producto extends ObjetoBD { 
-    private Integer id;
+//    private Integer id;
     @JsonProperty("categoria_id")
     private Integer categoria_id;
     
@@ -27,13 +27,13 @@ public class Producto extends ObjetoBD {
     public Producto() {
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
+//    public Integer getId() {
+//        return id;
+//    }
+//
+//    public void setId(Integer id) {
+//        this.id = id;
+//    }
 
     public String getNombre() {
         return nombre;
