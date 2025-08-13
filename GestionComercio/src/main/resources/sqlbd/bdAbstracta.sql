@@ -178,9 +178,18 @@ CREATE TABLE Venta (
     
     forma_pago ENUM('EFECTIVO','TRANSFERENCIA') NOT NULL DEFAULT 'EFECTIVO',
     punto_venta VARCHAR(10) DEFAULT NULL,
-    nro_comprobante VARCHAR(30) DEFAULT NULL,
+    nro_comprobante INT NOT NULL UNIQUE,
     -- efectivo_entregado DECIMAL(12,2) DEFAULT NULL,
     -- vuelto DECIMAL(12,2) DEFAULT NULL,
+    
+-- Campos redundantes del cliente
+--     cliente_id INT DEFAULT NULL,
+--     cliente_cuit_cuil VARCHAR(20) DEFAULT NULL,
+--     cliente_nombre VARCHAR(200) DEFAULT NULL,
+--     cliente_domicilio VARCHAR(200) DEFAULT NULL,
+--     cliente_localidad VARCHAR(100) DEFAULT NULL,
+--     cliente_telefono VARCHAR(50) DEFAULT NULL,
+
     observaciones VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (movimiento_id) REFERENCES Movimiento(id) ON DELETE CASCADE
 );
