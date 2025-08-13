@@ -174,7 +174,7 @@ public class App {
         // Rutas públicas de usuario
         app.post("/registrar", UsuarioControlador::registrar);
         app.post("/login", UsuarioControlador::login);
-        app.post("/inicializar", EmpresaControlador::inicializar)
+        app.post("/inicializar", EmpresaControlador::inicializar);
 
             //Esta no se si ponerla protegida o no, en teoria si, empleado/admin?
             app.get("/salir", (x -> {salir();  System.exit(0);}));

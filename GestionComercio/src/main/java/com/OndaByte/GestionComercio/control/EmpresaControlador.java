@@ -2,18 +2,13 @@ package com.OndaByte.GestionComercio.control;
 
 import static com.OndaByte.GestionComercio.util.Respuesta.buildRespuesta;
 
+import com.OndaByte.GestionComercio.DAO.DAOEmpresa;
+import com.OndaByte.GestionComercio.modelo.Empresa;
 import com.OndaByte.GestionComercio.modelo.Usuario;
-import com.OndaByte.config.Constantes;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -30,9 +25,9 @@ public class EmpresaControlador {
             
             Empresa e = new Empresa();
             e.setNombre(empresa.getString("nombre"));            
-            e.setNombre(empresa.getString("telefono"));
-            e.setNombre(empresa.getString("email"));
-            e.setNombre(empresa.getString("direccion"));
+            e.setTelefono(empresa.getString("telefono"));
+            e.setEmail(empresa.getString("email"));
+            e.setDireccion(empresa.getString("direccion"));
 
             Usuario a = new Usuario();
             a.setUsuario(admin.getString("usuario"));
@@ -43,7 +38,7 @@ public class EmpresaControlador {
                 ctx.status(201).result(buildRespuesta(201, "", "Inicializacion exitosa"));
                 logger.debug("Inicializar res: " + 201);
             } else {
-                ctx.status(500).result(buildRespuesta(500, null, "Inicializar:"));
+                ctx.status(500).result(buildRespuesta(500, null, "Hubo un Error al Inicializar"));
                 logger.debug("Inicializar res: " + 500);
             }
             
