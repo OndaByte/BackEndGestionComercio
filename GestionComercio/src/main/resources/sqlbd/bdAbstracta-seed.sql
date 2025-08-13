@@ -153,3 +153,33 @@ INSERT INTO Caja (estado_caja, nombre, sesion_actual) VALUES
 -- INSERT INTO Movimiento (tipo_mov,descripcion,total,sesion_caja_id) VALUES ("VENTA",NULL,200,1);
 -- INSERT INTO Movimiento (tipo_mov,descripcion,total,sesion_caja_id) VALUES ("VENTA",NULL,100,1);
 -- INSERT INTO Movimiento (tipo_mov,descripcion,total,sesion_caja_id) VALUES ("VENTA",NULL,100,1);
+
+INSERT INTO `Categoria` 
+(`nombre`, `porcentaje_descuento`, `tipo`, `padre_id`)
+VALUES
+('Bebidas', 0, 'PRODUCTO', NULL),
+('Alimentos', 0, 'PRODUCTO', NULL),
+('Panadería', 0, 'PRODUCTO', 2),
+('Snacks', 5, 'PRODUCTO', 2),
+('Lácteos', 0, 'PRODUCTO', 2),
+('Aceites y Condimentos', 0, 'PRODUCTO', NULL),
+('Frutas y Verduras', 0, 'PRODUCTO', NULL),
+('Clientes Frecuentes', 10, 'CLIENTE', NULL),
+('Clientes Mayoristas', 15, 'CLIENTE', NULL),
+('Clientes VIP', 20, 'CLIENTE', NULL),
+('Productos Gourmet', 5, 'PRODUCTO', NULL);
+
+INSERT INTO `Producto` 
+(`categoria_id`, `nombre`, `codigo_barra`, `descripcion`, `precio_costo`, `porcentaje_ganancia`, `porcentaje_descuento`, `stock`) 
+VALUES
+(1, 'Café Molido Premium', '1234567890123', 'Café arábica molido, bolsa de 500g.', 5.50, 40, 10, 50),
+(1, 'Té Verde Orgánico', '2345678901234', 'Hojas de té verde orgánico, 200g.', 4.20, 35, 5, 30),
+(2, 'Pan Integral Artesanal', '3456789012345', 'Pan integral de masa madre.', 1.80, 50, 0, 20),
+(2, 'Galletas de Avena', '4567890123456', 'Galletas saludables con avena y pasas.', 2.50, 45, 15, 40),
+(3, 'Jugo Natural de Naranja', '5678901234567', 'Jugo 100% exprimido, botella 1L.', 3.00, 30, 0, 25),
+(3, 'Agua Mineral 500ml', '6789012345678', 'Agua mineral de manantial.', 0.50, 60, 0, 100),
+(4, 'Aceite de Oliva Extra Virgen', '7890123456789', 'Aceite de oliva primera presión en frío, 500ml.', 6.80, 35, 5, 15),
+(4, 'Vinagre Balsámico', '8901234567890', 'Vinagre balsámico de Módena, 250ml.', 3.50, 40, 0, 18),
+(5, 'Queso Manchego Curado', '9012345678901', 'Queso manchego curado, pieza 500g.', 7.50, 45, 10, 12),
+(5, 'Yogur Natural', '0123456789012', 'Yogur natural sin azúcar, pack de 4.', 2.20, 50, 0, 35),
+(6, 'Chocolate Amargo 70%', '1122334455667', 'Chocolate amargo de cacao premium.', 4.80, 55, 5, 22);
