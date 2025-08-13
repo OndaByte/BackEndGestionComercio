@@ -213,7 +213,7 @@ CREATE TABLE Categoria (
     
     nombre VARCHAR(100) NOT NULL,
     porcentaje_descuento INT NOT NULL DEFAULT 0,
-    tipo ENUM('PRODUCTO', 'CLIENTE') NOT NULL, -- pára tipo de producto y tipo de cliente por si escala 
+    tipo ENUM('PRODUCTO', 'CLIENTE') NOT NULL DEFAULT 'PRODUCTO', -- pára tipo de producto y tipo de cliente por si escala 
     padre_id INT DEFAULT NULL,
     FOREIGN KEY (padre_id) REFERENCES Categoria(id)
 );

@@ -1,6 +1,7 @@
 package com.OndaByte.GestionComercio.DAO;
 
 import com.OndaByte.GestionComercio.modelo.Producto;
+import com.OndaByte.config.Constantes;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -160,10 +161,13 @@ public class DAOProducto implements DAOInterface<Producto> {
     }
 
     public HashMap<String, Object> filtrarOrdenadoYPaginado(List<String> campos, List<String> valores, List<Integer> condiciones, List<Boolean> conectores, Integer pagina, Integer elementos) {
+        if (!conectores.isEmpty()) {
+            conectores.set(conectores.size() - 1, Constantes.SQL_AND); // para cambiar el anterior a AND un ebola
+        }
         campos.add("estado");
         valores.add("ACTIVO");
-        condiciones.add(0);
-        conectores.add(true);
+        condiciones.add(Constantes.SQL_IGUAL);
+        conectores.add(Constantes.SQL_OR);
         Connection con = null;
         String query;
         Integer totalElementos = null;
@@ -246,9 +250,9 @@ public class DAOProducto implements DAOInterface<Producto> {
      * @param tamPag Tamaño de página
      * @return HashMap con data y metadatos de paginado
      */
-    public HashMap<String, Object> filtrarDetalladoOP_ProductoCategoria(
+    public HashMap<String, Object> filtrarDetalladoOP(
             String filtro,
-            Integer categoriaId,
+            String categoria,
             Integer pagina,
             Integer tamPag
     ) {
@@ -281,10 +285,10 @@ public class DAOProducto implements DAOInterface<Producto> {
             where += " AND (p.nombre LIKE :filtro "
                     + " OR p.descripcion LIKE :filtro "
                     + " OR p.codigo_barra LIKE :filtro "
-                    + " OR c.nombre LIKE :filtro) ";
+                    + " ) ";
         }
-        if (categoriaId != null) {
-            where += " AND p.categoria_id = :categoriaId ";
+        if (categoria != null) {
+            where += " OR c.nombre = LIKE :filtro ";
         }
 
         String orden = " ORDER BY pid DESC ";
@@ -308,9 +312,9 @@ public class DAOProducto implements DAOInterface<Producto> {
                 cq.addParameter("filtro", like);
                 dq.addParameter("filtro", like);
             }
-            if (categoriaId != null) {
-                cq.addParameter("categoriaId", categoriaId);
-                dq.addParameter("categoriaId", categoriaId);
+            if (categoria != null) {
+                cq.addParameter("categoria", categoria);
+                dq.addParameter("categoria", categoria);
             }
 
             Integer totalElementos = cq.executeAndFetchFirst(Integer.class);
@@ -334,14 +338,14 @@ public class DAOProducto implements DAOInterface<Producto> {
             return response;
 
         } catch (Sql2oException e) {
-            logger.error("Error SQL en filtrarDetalladoOP_ProductoCategoria(): " + e.getMessage(), e);
+            logger.error("Error SQL en filtrarDetalladoOP(): " + e.getMessage(), e);
         } catch (Exception e) {
-            logger.error("Error en filtrarDetalladoOP_ProductoCategoria(): " + e.getMessage(), e);
+            logger.error("Error en filtrarDetalladoOP(): " + e.getMessage(), e);
         } finally {
             if (con != null) {
                 con.close();
             }
-            logger.debug("Conexión cerrada después de llamar a filtrarDetalladoOP_ProductoCategoria()");
+            logger.debug("Conexión cerrada después de llamar a filtrarDetalladoOP()");
         }
         return null;
     }
