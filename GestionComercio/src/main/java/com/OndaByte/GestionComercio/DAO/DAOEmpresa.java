@@ -22,8 +22,7 @@ public class DAOEmpresa {
     private static Logger logger = LogManager.getLogger(DAOEmpresa.class.getName());
 
     public Boolean inicializar(Empresa empresa, Usuario u){
-        Connection con=null;
-        
+        Connection con=null;        
         try{
             String queryEmpresa = generadorQueryE.getQueryAlta(empresa);
             String queryUsuario = generadorQueryU.getQueryAlta(u);
@@ -32,7 +31,7 @@ public class DAOEmpresa {
             con = ConexionSQL2o.getSql2o().open();
             Query auxQuery = con.createQuery(query);
             
-            if (auxQuery.executeAndFetchFirst(Integer.class) >= 0) {
+            if (auxQuery.executeAndFetchFirst(Integer.class) > 0) {
                 con.close();
                 return false;
             }            
