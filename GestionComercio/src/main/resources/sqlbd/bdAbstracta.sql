@@ -169,7 +169,7 @@ CREATE TABLE Venta (
     ultMod TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE current_timestamp(),
     estado ENUM("ACTIVO","INACTIVO") DEFAULT "ACTIVO",
     
-    movimiento_id INT NOT NULL UNIQUE,
+    movimiento_id INT NULL UNIQUE, -- se inserta con triggay por ahora
     cliente_id INT DEFAULT NULL,
 
     subtotal DECIMAL(12,2) NOT NULL,
@@ -370,6 +370,33 @@ BEGIN
 END;
 
 
+CREATE TRIGGER alta_movimiento_venta
+BEFORE INSERT ON Venta
+FOR EACH ROW
+BEGIN
+    DECLARE sesion_abierta_id INT;
+
+    SELECT id INTO sesion_abierta_id
+    FROM SesionCaja
+    WHERE cierre IS NULL
+    ORDER BY apertura DESC
+    LIMIT 1;
+
+    IF sesion_abierta_id IS NOT NULL THEN
+        INSERT INTO Movimiento (tipo_mov, descripcion, total, sesion_caja_id)
+        VALUES (
+            'INGRESO',
+            CONCAT('Venta ', NEW.id),
+            NEW.total,
+            sesion_abierta_id
+        );
+
+        SET NEW.movimiento_id = LAST_INSERT_ID();
+    ELSE
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No se puede registrar la venta: no hay sesión de caja abierta.';
+    END IF;
+END;
 
 $$
 

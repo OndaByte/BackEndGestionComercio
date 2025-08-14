@@ -5,6 +5,9 @@ import com.OndaByte.GestionComercio.util.Seguridad;
 import com.OndaByte.GestionComercio.modelo.Caja;
 import com.OndaByte.GestionComercio.modelo.Movimiento;
 import com.OndaByte.GestionComercio.DAO.DAOCaja;
+import com.OndaByte.GestionComercio.DAO.DAOVenta;
+import com.OndaByte.GestionComercio.modelo.ItemVenta;
+import com.OndaByte.GestionComercio.modelo.Venta;
 import static com.OndaByte.GestionComercio.util.Respuesta.buildRespuesta;
 import com.OndaByte.config.Constantes;
 
@@ -298,6 +301,53 @@ public class CajaControlador {
         }
     }
 
+    
+    public static void altaVenta(Context ctx) {
+        logger.debug("altaVenta");
+        try {
+            //Lectura body
+            JSONObject joBody = new JSONObject(ctx.body());
+            JSONObject joVenta = joBody.getJSONObject("venta");
+            JSONArray jiArray = joBody.getJSONArray("items");
+            //Estructuras de Datos
+            Venta nueva = new Venta();
+            List<ItemVenta> itemsV = new ArrayList<>();
+            DAOVenta dao = new DAOVenta();
+            nueva.setCliente_id(joVenta.optIntegerObject("cliente_id",null));
+            nueva.setForma_pago(joVenta.getString("forma_pago"));
+            nueva.setPunto_venta("00001");
+            nueva.setSubtotal(joVenta.getFloat("subtotal"));
+            nueva.setPorcentaje_descuento(joVenta.getInt("porcentaje_descuento"));
+            nueva.setTotal(joVenta.getFloat("total"));
+            nueva.setObservaciones(joVenta.optString("observaciones",null));
+            //nueva. etc. null.
+            for (int i = 0; i < jiArray.length(); i++) {
+                JSONObject itemObj = jiArray.getJSONObject(i);
+                ItemVenta iv = new ItemVenta();
+                iv.setNombre(itemObj.getString("nombre"));
+                iv.setProducto_id(itemObj.getInt("producto_id"));
+                iv.setSubtotal(itemObj.getFloat("subtotal"));
+                iv.setPorcentaje_descuento(itemObj.getInt("porcentaje_descuento"));
+                iv.setCantidad(itemObj.optInt("cantidad",1));
+                itemsV.add(iv);
+            }
+
+            long alta_id = dao.altaConItems(nueva,itemsV);
+            if (alta_id > -1) {
+                ctx.status(201).result(buildRespuesta(201, "{\"id\":" + alta_id + "}", "Alta exitosa"));
+            } else {
+                ctx.status(500).result(buildRespuesta(500, null, "Error al dar de alta la Venta"));
+            }
+        } catch (Exception e) {
+            if (ctx != null) {
+                ctx.status(500).result(buildRespuesta(500, null, "Error inesperado"));
+            }
+            logger.error("alta()" + e.getMessage());
+        }
+    }
+
+
+    
     public static void filtrar(Context ctx) {
         try {
             Integer pagina = Parsero.safeParse(ctx.queryParam("pagina"));
