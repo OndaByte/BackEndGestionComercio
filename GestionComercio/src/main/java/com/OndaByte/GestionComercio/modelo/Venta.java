@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author luciano
  */
 @JsonIgnoreProperties(ignoreUnknown = true) // Ignorá cualquier campo extra en el JSON
-public class Venta extends ObjetoBD {
+public class Venta extends ObjetoBD {    
     
     private Integer id;
     @JsonProperty("movimiento_id")

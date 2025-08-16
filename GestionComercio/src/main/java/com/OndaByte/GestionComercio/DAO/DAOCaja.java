@@ -211,6 +211,7 @@ public class DAOCaja implements DAOInterface<Caja> {
         }
         return null;
     }
+    
     public List<Movimiento> movimientosCaja(String id_caja){
         String query = "SELECT Movimiento.* FROM Movimiento JOIN Caja ON Movimiento.sesion_caja_id=Caja.sesion_actual WHERE Caja.id = :id";
         Connection con=null;
@@ -227,8 +228,6 @@ public class DAOCaja implements DAOInterface<Caja> {
         }
         return null;
     }
-
-
        
     public HashMap<String, Object> movimientosCaja(List<String> campos, 
         List<String> valores, List<Integer> condiciones, List<Boolean> conectores, 
