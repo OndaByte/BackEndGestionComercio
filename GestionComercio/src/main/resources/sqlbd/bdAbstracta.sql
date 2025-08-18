@@ -398,6 +398,21 @@ BEGIN
     END IF;
 END;
 
+CREATE TRIGGER descontar_stock_venta
+BEFORE INSERT ON ItemVenta
+FOR EACH ROW
+BEGIN
+    UPDATE Producto
+    SET stock = stock - NEW.cantidad
+    WHERE isd = NEW.producto_id
+      AND stock >= NEW.cantidad;
+
+    IF ROW_COUNT() = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Stock insuficiente para el producto';
+    END IF;
+END$$
+
 $$
 
 DELIMITER ;

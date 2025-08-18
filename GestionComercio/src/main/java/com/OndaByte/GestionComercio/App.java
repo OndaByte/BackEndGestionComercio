@@ -62,6 +62,8 @@ public class App {
                             //  get("/{id}",CajaControlador::movimientosCaja);
                             get("/movimientos",CajaControlador::movimientosCajaOP);
                             get("/resumen",CajaControlador::resumenCaja);
+//                            get("/ultimaCaja",CajaControlador::ultimaCaja);
+                            
                         });
                     
                         path("/empleado",()->{

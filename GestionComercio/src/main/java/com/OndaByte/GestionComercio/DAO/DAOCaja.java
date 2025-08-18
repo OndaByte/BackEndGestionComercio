@@ -99,6 +99,40 @@ public class DAOCaja implements DAOInterface<Caja> {
         }
         return -1;
     }
+//    
+//    public Integer ultimaCaja(String caja, String cajero) throws SQLException {
+//        String query = "INSERT INTO SesionCaja (monto_inicial,caja_id,cajero_id) VALUES (:monto,:caja,:cajero)";
+//        Connection con = null;
+//        try {
+//            con = ConexionSQL2o.getSql2o().open();
+//            return con.createQuery(query)
+//                .addParameter("monto", monto)
+//                .addParameter("caja", caja)
+//                .addParameter("cajero", cajero)
+//                .executeUpdate().getKey(Integer.class);
+//        } catch (Sql2oException e) {
+//            Throwable cause = e.getCause();
+//            if (cause instanceof SQLException) {
+//                String sqlState = ((SQLException) cause).getSQLState();
+//                switch (sqlState) {
+//                    case "45000":
+//                        throw new SQLException("Error: Caja en uso");
+//                    case "45001":
+//                        throw new SQLException("Error: Cajero cuenta con sesion activa");
+//                    default:
+//                        logger.error("Error SQLState desconocido: " + sqlState, e);
+//                }
+//            }
+//        } catch (Exception e) {
+//            logger.error("Abrir: " + e.getMessage(), e);
+//        } finally {
+//            if (con != null) {
+//                logger.debug("Abrir: Conexion cerrada.");
+//                con.close();
+//            }
+//        }
+//        return -1;
+//    }
     public Boolean cerrar(String caja, String cajero, Boolean esAdmin){
         String query = "UPDATE SesionCaja SET cierre=current_timestamp() WHERE caja_id=:caja "+(esAdmin ? "":"AND cajero_id=:cajero")+" AND cierre IS NULL";
         Connection con = null;
