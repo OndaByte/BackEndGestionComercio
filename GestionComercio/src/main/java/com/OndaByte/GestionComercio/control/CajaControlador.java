@@ -158,6 +158,32 @@ public class CajaControlador {
         }
     }
     
+//    public static void ultimaCaja(Context ctx) {
+//        try {
+//            String token = ctx.header("token");
+//            String cajero_id = Seguridad.validar(token).getSubject();
+//            logger.debug("ultimaCaja: ");
+//            DAOCaja dao = new DAOCaja();
+//            Integer sesion = dao.ultimaCaja(id, cajero_id, monto);
+//            if (sesion>-1) {
+//                ctx.status(201).result(buildRespuesta(201, "{\"id\":"+sesion+"}", "Caja abierta con exito"));
+//                logger.debug("Abrir res: "+201);
+//            } else {
+//                ctx.status(404).result(buildRespuesta(404,  null, "No se encontró el registro"));
+//                logger.debug("Abrir res: "+404);
+//            }
+//
+//        } catch(SQLException e){
+//            ctx.status(409).result(buildRespuesta(409,  null, e.getMessage()));
+//        } catch (Exception e) {
+//            logger.error("Abrir: " + e.getMessage(), e);
+//            if (ctx != null) {
+//                ctx.status(500).result(buildRespuesta(500, null, "Error inesperado"));
+//                logger.debug("Abrir res: "+500);
+//            }
+//        }
+//    }
+    
     public static void cerrar(Context ctx) {
         try {
             String cajero_id = ctx.sessionAttribute("usuario");
@@ -341,6 +367,7 @@ public class CajaControlador {
             JSONObject joBody = new JSONObject(ctx.body());
             JSONObject joVenta = joBody.getJSONObject("venta");
             JSONArray jiArray = joBody.getJSONArray("items");
+            
             //Estructuras de Datos
             Venta nueva = new Venta();
             List<ItemVenta> itemsV = new ArrayList<>();
