@@ -56,6 +56,7 @@ public class App {
                         path("/caja",()->{
                             post("/movimiento",CajaControlador::movimiento);
                             post("/venta",CajaControlador::altaVenta);
+                            get("/{id}/ultimaSesion", CajaControlador::obtenerUltimaSesion);
                             post("/{id}",CajaControlador::abrir);
                             put("/{id}",CajaControlador::cerrar);
                             get(CajaControlador::filtrar);

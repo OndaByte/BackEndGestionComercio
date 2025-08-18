@@ -85,6 +85,38 @@ public class CajaControlador {
             }
         }
     }
+
+    public static void obtenerUltimaSesion(Context ctx) {
+        try {
+            String caja_id = ctx.pathParam("id");
+
+            if (caja_id == null || caja_id.isEmpty()) {
+                ctx.status(400).result(buildRespuesta(400, null, "Error: Parametro incorrecto"));
+                logger.debug("ObtenerUltimaSesion res: " + 400);
+                return;
+            }
+
+            DAOCaja dao = new DAOCaja();
+            Integer ultimaSesion = dao.obtenerUltimaSesion(caja_id);
+
+            if (ultimaSesion != null && ultimaSesion > -1) {
+                ctx.status(200).result(buildRespuesta(200, "{\"id\":"+ultimaSesion+"}", "Última sesión obtenida con éxito"));
+                logger.debug("ObtenerUltimaSesion res: " + 200);
+            } else {
+                ctx.status(404).result(buildRespuesta(404, null, "No se encontró ninguna sesión para la caja"));
+                logger.debug("ObtenerUltimaSesion res: " + 404);
+            }
+
+        } catch (Exception e) {
+            logger.error("ObtenerUltimaSesion: " + e.getMessage(), e);
+            if (ctx != null) {
+                ctx.status(500).result(buildRespuesta(500, null, "Error inesperado"));
+                logger.debug("ObtenerUltimaSesion res: " + 500);
+            }
+        }
+    }
+
+
     public static void abrir(Context ctx) {
         try {
             String token = ctx.header("token");
