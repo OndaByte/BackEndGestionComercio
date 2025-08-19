@@ -404,7 +404,7 @@ FOR EACH ROW
 BEGIN
     UPDATE Producto
     SET stock = stock - NEW.cantidad
-    WHERE isd = NEW.producto_id
+    WHERE id = NEW.producto_id
       AND stock >= NEW.cantidad;
 
     IF ROW_COUNT() = 0 THEN
