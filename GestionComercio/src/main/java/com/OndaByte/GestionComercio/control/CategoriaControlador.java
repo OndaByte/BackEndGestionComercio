@@ -151,11 +151,11 @@ public class CategoriaControlador {
             ArrayList<Boolean> conectores = new ArrayList<>();
 
             if(filtro != null && !filtro.isEmpty()){
-                campos = new ArrayList<>(List.of("nombre", "descripcion", "codigo_barra"));
+                campos = new ArrayList<>(List.of("nombre"));
                 for(int i = 0 ; i< campos.size(); i++){
                     valores.add("%"+filtro+"%");
                     condiciones.add(Constantes.SQL_LIKE);
-                    conectores.add(Constantes.SQL_OR);
+                    conectores.add(Constantes.SQL_AND);
                 }
             }
             logger.debug("pag"+pagina+" cant"+cantElementos);
