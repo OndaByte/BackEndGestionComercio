@@ -66,6 +66,25 @@ public class DAOCaja implements DAOInterface<Caja> {
         }
         return false;
     }
+    public Integer obtenerUltimaSesion(String cajaId) {
+        String query = "SELECT id FROM SesionCaja WHERE caja_id = :id ORDER BY id DESC LIMIT 1";
+        Connection con = null;
+        try {
+            con = ConexionSQL2o.getSql2o().open();
+            return con.createQuery(query)
+                    .addParameter("id", cajaId)
+                    .executeAndFetchFirst(Integer.class);
+        } catch (Exception e) {
+            logger.error("ObtenerUltimaSesion: " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                logger.debug("ObtenerUltimaSesion: Conexion cerrada.");
+                con.close();
+            }
+        }
+        return -1; // en caso de error o no existir sesión
+    }
+
     public Integer abrir(String caja, String cajero, Float monto) throws SQLException {
         String query = "INSERT INTO SesionCaja (monto_inicial,caja_id,cajero_id) VALUES (:monto,:caja,:cajero)";
         Connection con = null;

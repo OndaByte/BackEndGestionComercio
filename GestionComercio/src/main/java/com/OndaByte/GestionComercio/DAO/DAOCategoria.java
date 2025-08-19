@@ -64,7 +64,7 @@ public class DAOCategoria implements DAOInterface<Categoria>{
             if (con != null) {
                 con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
             }
-            logger.debug("Conexión cerrada después de llamar a baja()");
+            logger.debug("Conexión cerrada después de llamar a DAOCategoria.baja()");
         }
         return false;
     }

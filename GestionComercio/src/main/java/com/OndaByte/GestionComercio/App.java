@@ -56,6 +56,7 @@ public class App {
                         path("/caja",()->{
                             post("/movimiento",CajaControlador::movimiento);
                             post("/venta",CajaControlador::altaVenta);
+                            get("/{id}/ultimaSesion", CajaControlador::obtenerUltimaSesion);
                             post("/{id}",CajaControlador::abrir);
                             put("/{id}",CajaControlador::cerrar);
                             get(CajaControlador::filtrar);
@@ -101,11 +102,18 @@ public class App {
                     
                         path("/producto",()->{
                             put("/{id}",ProductoControlador::modificar);
-                            delete(ProductoControlador::baja);
+                            delete("/{id}",ProductoControlador::baja);
                             get(ProductoControlador::filtrarPaginado);
                             post(ProductoControlador::alta);
                         });
-                    
+
+                        path("/categoria",()->{
+                            put("/{id}",CategoriaControlador::modificar);
+                            delete("/{id}",CategoriaControlador::baja);
+                            get(CategoriaControlador::filtrarPaginado);
+                            post(CategoriaControlador::alta);
+                        });
+
                         path("/presupuesto",()->{
                             delete("/{id}",PresupuestoControlador::baja);
                             get(PresupuestoControlador::filtrarDetalladoPaginado);
