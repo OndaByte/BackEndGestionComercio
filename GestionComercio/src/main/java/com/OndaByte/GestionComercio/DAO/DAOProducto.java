@@ -70,7 +70,7 @@ public class DAOProducto implements DAOInterface<Producto> {
             if (con != null) {
                 con.close(); // Aunque Sql2o la cierra, aseguramos cierre 
             }
-            logger.debug("Conexión cerrada después de llamar a DAOInsumo.baja()");
+            logger.debug("Conexión cerrada después de llamar a DAOProducto.baja()");
         }
         return false;
     }

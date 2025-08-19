@@ -102,11 +102,18 @@ public class App {
                     
                         path("/producto",()->{
                             put("/{id}",ProductoControlador::modificar);
-                            delete(ProductoControlador::baja);
+                            delete("/{id}",ProductoControlador::baja);
                             get(ProductoControlador::filtrarPaginado);
                             post(ProductoControlador::alta);
                         });
-                    
+
+                        path("/categoria",()->{
+                            put("/{id}",CategoriaControlador::modificar);
+                            delete("/{id}",CategoriaControlador::baja);
+                            get(CategoriaControlador::filtrarPaginado);
+                            post(CategoriaControlador::alta);
+                        });
+
                         path("/presupuesto",()->{
                             delete("/{id}",PresupuestoControlador::baja);
                             get(PresupuestoControlador::filtrarDetalladoPaginado);
