@@ -34,6 +34,10 @@ INSERT INTO Permiso (nombre) VALUES
 ('PRESUPUESTO_BAJA'),
 ('PRESUPUESTO_LISTAR'),
 ('PRESUPUESTO_MODIFICAR'),
+('PRODUCTO_ALTA'),
+('PRODUCTO_BAJA'),
+('PRODUCTO_LISTAR'),
+('PRODUCTO_MODIFICAR'),
 ('TURNO_ALTA'),
 ('TURNO_BAJA'),
 ('TURNO_LISTAR'),
@@ -92,14 +96,20 @@ INSERT INTO RolPermiso (rol_id, permiso_id) VALUES
 (2, 17), -- Empleado puede dar de ALtA una orden
 (2, 19), -- Empleado puede actualizar orden ¿CUAL ES LA DIFERENCIA? (LISTAR)
 (2, 20), -- Empleado puede MODIFICAR una orden
-(3, 4); -- Usuario deberia poder cambiar su contra
+(2, 36), -- Empleado deberia poder cambiar su contra
+(3, 36); -- Usuario deberia poder cambiar su contra
 
 INSERT INTO Usuario
 (estado,usuario,contra)
 VALUES
-("ACTIVO", "antartida", "$2a$10$zEQlxtngIZHklP3kyLDLLuxU0rwRuqtbHLc01eyDrY0tAx110uY46");
+("ACTIVO", "misterqueso", "$2a$10$xJQ6mbLodSr9bwo6G0h27Onp5dSBbqFfbLuif/0kTu1ZGNoDqUx8."),
+("ACTIVO", "vendedor","$2a$10$prvpKU.xdZf1X1MwroLsreA61VjuLp/a6OBHgpBgfGDlXVh5GLFem");
 
 INSERT INTO UsuarioRol
 (usuario_id,rol_id)
 VALUES
 (1,1);
+(2,2);
+
+INSERT INTO Caja (estado_caja, nombre, sesion_actual) VALUES
+("CERRADA", 'Caja 1', NULL);

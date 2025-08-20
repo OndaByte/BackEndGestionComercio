@@ -411,7 +411,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Stock insuficiente para el producto';
     END IF;
-END$$
+END;
 
 $$
 
