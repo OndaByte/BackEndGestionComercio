@@ -33,14 +33,14 @@ public class UsuarioControlador {
 
     public static void login(Context ctx) {
         try {
-            logger.debug("Login:\n" + ctx.body());
+            logger.fatal("Login:\n" + ctx.body());
 
             JSONObject bodyJson = new JSONObject(ctx.body()); 
             if(!bodyJson.has("user") || bodyJson.isNull("user") || bodyJson.getString("user") == ""  || !bodyJson.getString("user").matches("[\\p{L}0-9]+")
                || !bodyJson.has("pass") || bodyJson.isNull("pass") || bodyJson.getString("pass") == "")
                 {
                     ctx.status(400).result(buildRespuesta(400, null, "Formulario Incorrecto"));
-                    logger.debug("Login res: "+ 400);
+                    logger.fatal("Login res: "+ 400);
                     return;
                 }
 
@@ -49,13 +49,19 @@ public class UsuarioControlador {
             Usuario aux = dao.getUsuario(bodyJson.getString("user"));
 
             if (aux != null && BCrypt.checkpw(bodyJson.getString("pass"), aux.getContra())) {
+                logger.fatal("Login:\n" + ctx.body());
                 String token = Seguridad.getToken(aux.getId()+"");
                 JSONArray permiso = new JSONArray(daoRol.getPermisosUsuario(aux.getId()));
                 Rol rol = daoRol.getRolUsuario(aux.getId()+"");
                 JSONObject data = new JSONObject();
+
                 data.put("token", token);
+                            logger.fatal("Login:\n" + token);
                 data.put("permisos",permiso);
+                            logger.fatal("permisos:\n" + permiso);
                 data.put("rol",new JSONObject(rol).toString());
+                            logger.fatal("rol:\n" + permiso);
+                
                 ctx.status(200).result(buildRespuesta(200, data.toString(), "Verificado con exito"));
                 logger.debug("Login res: "+ 200);
             } else {
