@@ -163,16 +163,17 @@ public class DAOVenta {
         }
         return -1;
     }
-public Integer altaConMovimientoEItems(Venta venta, List<ItemVenta> items) {
-    Connection con = null;
 
-    String selectSesionAbierta = 
-        "SELECT id FROM SesionCaja WHERE cierre IS NULL ORDER BY apertura DESC LIMIT 1";
+    public Integer altaConMovimientoEItems(Venta venta, List<ItemVenta> items) {
+        Connection con = null;
 
-    String selectMaxNroComprobante = 
-        "SELECT IFNULL(MAX(nro_comprobante), 0) + 1 AS nuevo_nro FROM Venta";
+        String selectSesionAbierta
+                = "SELECT id FROM SesionCaja WHERE cierre IS NULL ORDER BY apertura DESC LIMIT 1";
 
-    String insertMovimiento = """
+        String selectMaxNroComprobante
+                = "SELECT IFNULL(MAX(nro_comprobante), 0) + 1 AS nuevo_nro FROM Venta";
+
+        String insertMovimiento = """
             INSERT INTO Movimiento (
                 cliente_id, sesion_caja_id, tipo_mov, descripcion, total
             ) VALUES (
@@ -180,7 +181,7 @@ public Integer altaConMovimientoEItems(Venta venta, List<ItemVenta> items) {
             )
             """;
 
-    String insertVenta = """
+        String insertVenta = """
             INSERT INTO Venta (
                 movimiento_id,
                 cliente_id,
@@ -204,76 +205,76 @@ public Integer altaConMovimientoEItems(Venta venta, List<ItemVenta> items) {
             )
             """;
 
-    try {
-        con = ConexionSQL2o.getSql2o().beginTransaction();
+        try {
+            con = ConexionSQL2o.getSql2o().beginTransaction();
 
-        // 0) Validaciones mínimas
-        if (items == null || items.isEmpty()) {
-            throw new IllegalArgumentException("La venta debe tener al menos un ítem.");
+            // 0) Validaciones mínimas
+            if (items == null || items.isEmpty()) {
+                throw new IllegalArgumentException("La venta debe tener al menos un ítem.");
+            }
+
+            // 1) Sesión de caja abierta
+            Integer sesionId = con.createQuery(selectSesionAbierta)
+                    .executeScalar(Integer.class);
+            if (sesionId == null) {
+                throw new IllegalStateException("No hay sesión de caja abierta.");
+            }
+
+            // 2) Nro de comprobante
+            Integer nuevoNroComprobante = con.createQuery(selectMaxNroComprobante)
+                    .executeScalar(Integer.class);
+            venta.setNro_comprobante(nuevoNroComprobante);
+
+            // 3) Insertar Movimiento (VENTA)
+            String descMov = "Venta "
+                    + (venta.getPunto_venta() != null ? venta.getPunto_venta() : "")
+                    + "-"
+                    + (venta.getNro_comprobante() != null ? venta.getNro_comprobante() : "");
+            Integer movimientoId = con.createQuery(insertMovimiento, true)
+                    .addParameter("cliente_id", venta.getCliente_id()) // puede ser NULL
+                    .addParameter("sesion_caja_id", sesionId) // NOT NULL
+                    .addParameter("descripcion", descMov)
+                    .addParameter("total", venta.getTotal())
+                    .executeUpdate()
+                    .getKey(Integer.class);
+
+            // 4) Insertar Venta con movimiento_id
+            Integer ventaId = con.createQuery(insertVenta, true)
+                    .addParameter("movimiento_id", movimientoId) // NOT NULL
+                    .addParameter("cliente_id", venta.getCliente_id()) // puede ser NULL
+                    .addParameter("subtotal", venta.getSubtotal())
+                    .addParameter("porcentaje_descuento", venta.getPorcentaje_descuento())
+                    .addParameter("total", venta.getTotal())
+                    .addParameter("forma_pago", venta.getForma_pago())
+                    .addParameter("punto_venta", venta.getPunto_venta())
+                    .addParameter("nro_comprobante", venta.getNro_comprobante())
+                    .addParameter("observaciones", venta.getObservaciones())
+                    .executeUpdate()
+                    .getKey(Integer.class);
+
+            // 5) Alta de ítems vinculados a la venta
+            this.altaItems(con, ventaId, items);
+
+            // 6) Commit
+            con.commit();
+
+            logger.debug("Movimiento ID: " + movimientoId + " | Venta e ítems insertados con ID: " + ventaId);
+            return ventaId;
+
+        } catch (Exception e) {
+            if (con != null) {
+                con.rollback();
+            }
+            logger.warn("Rollback ejecutado en altaConItems(): " + e.getMessage(), e);
+            return -1;
+        } finally {
+            if (con != null) {
+                con.close();
+            }
+            logger.debug("Conexión cerrada después de altaConItems()");
         }
-
-        // 1) Sesión de caja abierta
-        Integer sesionId = con.createQuery(selectSesionAbierta)
-                .executeScalar(Integer.class);
-        if (sesionId == null) {
-            throw new IllegalStateException("No hay sesión de caja abierta.");
-        }
-
-        // 2) Nro de comprobante
-        Integer nuevoNroComprobante = con.createQuery(selectMaxNroComprobante)
-                .executeScalar(Integer.class);
-        venta.setNro_comprobante(nuevoNroComprobante);
-
-        
-        // 3) Insertar Movimiento (VENTA)
-        String descMov = "Venta " 
-                + (venta.getPunto_venta() != null ? venta.getPunto_venta() : "") 
-                + "-" 
-                + (venta.getNro_comprobante() != null ? venta.getNro_comprobante() : "");
-        Integer movimientoId = con.createQuery(insertMovimiento, true)
-                .addParameter("cliente_id", venta.getCliente_id())          // puede ser NULL
-                .addParameter("sesion_caja_id", sesionId)                   // NOT NULL
-                .addParameter("descripcion", descMov)
-                .addParameter("total", venta.getTotal())
-                .executeUpdate()
-                .getKey(Integer.class);
-
-        // 4) Insertar Venta con movimiento_id
-        Integer ventaId = con.createQuery(insertVenta, true)
-                .addParameter("movimiento_id", movimientoId)                // NOT NULL
-                .addParameter("cliente_id", venta.getCliente_id())          // puede ser NULL
-                .addParameter("subtotal", venta.getSubtotal())
-                .addParameter("porcentaje_descuento", venta.getPorcentaje_descuento())
-                .addParameter("total", venta.getTotal())
-                .addParameter("forma_pago", venta.getForma_pago())
-                .addParameter("punto_venta", venta.getPunto_venta())
-                .addParameter("nro_comprobante", venta.getNro_comprobante())
-                .addParameter("observaciones", venta.getObservaciones())
-                .executeUpdate()
-                .getKey(Integer.class);
-
-        // 5) Alta de ítems vinculados a la venta
-        this.altaItems(con, ventaId, items);
-
-        // 6) Commit
-        con.commit();
-
-        logger.debug("Movimiento ID: " + movimientoId + " | Venta e ítems insertados con ID: " + ventaId);
-        return ventaId;
-
-    } catch (Exception e) {
-        if (con != null) {
-            con.rollback();
-        }
-        logger.warn("Rollback ejecutado en altaConItems(): " + e.getMessage(), e);
-        return -1;
-    } finally {
-        if (con != null) {
-            con.close();
-        }
-        logger.debug("Conexión cerrada después de altaConItems()");
     }
-}
+
     /**
      * Borra todos los ítems de un remito y vuelve a insertarlos. Usa la misma
      * Connection para mantener la transacción abierta.
@@ -429,8 +430,8 @@ public Integer altaConMovimientoEItems(Venta venta, List<ItemVenta> items) {
     }
 
     /**
-     * Devuelve Remito, Cliente y Orden: Presupuesto si existe.
-     *
+     * Devuelve Venta y  Cliente:
+     * Presupuesto si existe.
      * @param filtro Filtra por nombre de cliente o por descripción de remito
      * @param desde Fecha desde creado remito.
      * @param hasta Fecha hasta creado remito
@@ -439,146 +440,177 @@ public Integer altaConMovimientoEItems(Venta venta, List<ItemVenta> items) {
      * @param tamPag Tamaño de página
      * @return Respuesta con data + paginado.
      *
-     *
-     * public HashMap<String, Object> filtrarDetalladoOP(String filtro, String
-     * desde, String hasta, String estadoRemito, Integer pagina, Integer tamPag)
-     * { String select = " SELECT r.id AS rid, " + " r.fecha_emision
-     * rfecha_emision, " + " r.fecha_pago rfecha_pago, " + " r.nro_remito
-     * rnro_remito," + " r.punto_venta rpunto_venta," + " r.total rtotal, " + "
-     * r.observaciones robservaciones, " + " r.orden_id rorden_id, " + "
-     * r.cliente_id rcliente_id, " + " r.cliente_cuit_cuil rcliente_cuit_cuil, "
-     * + " r.cliente_nombre rcliente_nombre, " + " r.cliente_domicilio
-     * rcliente_domicilio, " + " r.cliente_localidad rcliente_localidad, " + "
-     * r.cliente_telefono rcliente_telefono, " + " c.id AS cid, " + " c.nombre
-     * cnombre, " + " c.email cemail," + " c.telefono ctelefono, " + "
-     * c.direccion cdireccion, " + " c.dni cdni, " + " c.cuit_cuil ccuit_cuil, "
-     * + " c.localidad clocalidad, " + " c.codigo_postal ccodigo_postal, " + "
-     * c.provincia cprovincia, " + " c.cond_iva ccond_iva, " + " o.id AS oid, "
-     * + " o.descripcion odescripcion, " + " o.estado_orden oestado_orden, " + "
-     * o.tipo otipo, " + " o.fecha_fin ofecha_fin, " + " o.creado ocreado " /* +
-     * " pre.id preid," + " pre.nombre prenombre," + " pre.descripcion
-     * predescripcion," + " pre.estado_presupuesto preestado_presupuesto"
-     *
-     * ;
-     *
-     * String from = " FROM Remito r JOIN Cliente c ON r.cliente_id=c.id " + "
-     * LEFT JOIN Orden o ON r.orden_id=o.id " //+ " LEFT JOIN Presupuesto pre ON
-     * r.presupuesto_id = pre.pedido_id" ;
-     *
-     * String where = " WHERE r.estado = 'ACTIVO' " + " AND c.estado = 'ACTIVO'
-     * " + " AND o.estado = 'ACTIVO' " //+ " AND ( pre.id IS NULL OR ( pre.id IS
-     * NOT NULL AND pre.estado='ACTIVO' ) )" ;
-     *
-     * if(filtro!=null){ where += " AND (c.nombre LIKE :filtro OR r.nro_remito
-     * LIKE :filtro)"; } if(desde != null && hasta !=null){ where += " AND
-     * (r.creado BETWEEN :desde AND :hasta)"; } if(estadoRemito !=null){ where
-     * += " AND r.estado_remito = :estadoRemito"; }
-     *
-     * String orden = " ORDER BY rid DESC " ; String page = " LIMIT :limit
-     * OFFSET :offset";
-     *
-     * pagina = pagina == null || pagina < 1 ? 1 : pagina; // control unsusto
-     * tamPag = tamPag == null || tamPag < 1 ? 10 : Math.min(tamPag, 1000); //
-     * control unsusto Connection con = null; Integer totalElementos = null;
-     * Integer totalPaginas = null; List<HashMap<String,Object>> data; try {
-     * HashMap<String, Object> response = new HashMap<>(); con =
-     * ConexionSQL2o.getSql2o().open(); Query cq = con.createQuery("SELECT
-     * COUNT(*) " + from + where); Query dq = con.createQuery(select + from +
-     * where + orden + page);
-     *
-     * if(filtro!=null){ cq.addParameter("filtro","%"+ filtro +"%");
-     * dq.addParameter("filtro","%"+ filtro +"%"); } if(desde != null && hasta
-     * !=null){ desde +=" 00:00:00"; hasta += " 23:59:59";
-     * cq.addParameter("desde", desde); dq.addParameter("hasta", hasta);
-     * cq.addParameter("hasta", hasta); dq.addParameter("desde", desde); }
-     * if(estadoRemito !=null){ cq.addParameter("estadoRemito", estadoRemito);
-     * dq.addParameter("estadoRemito", estadoRemito); }
-     *
-     * totalElementos = cq.executeAndFetchFirst(Integer.class); totalPaginas =
-     * (int) Math.ceil((double) totalElementos / tamPag); logger.debug("Count
-     * query ejecutada: " + cq.toString()); logger.debug("Datos query por
-     * ejecutar: " + dq.toString());
-     *
-     * data = tablaToRemitosDetalladoOP(dq .addParameter("limit", tamPag)
-     * .addParameter("offset", (pagina - 1) * tamPag) .executeAndFetchTable());
-     *
-     * logger.debug("Datos query ejecutada: " + dq.toString());
-     *
-     * response.put("pagina", pagina); response.put("elementos", tamPag);
-     * response.put("t_elementos", totalElementos); response.put("t_paginas",
-     * totalPaginas);
-     *
-     *
-     * if (data != null) response.put("data", data); return response;
-     *
-     * } catch (Sql2oException e) { logger.error("Error SQL en
-     * filtrarDetalladoOP(): " + e.getMessage(), e); } catch (Exception e) {
-     * logger.error("Error en filtrarDetalladoOP(): " + e.getMessage(), e); }
-     * finally { if (con != null) { con.close(); // Aunque Sql2o la cierra,
-     * aseguramos cierre } logger.debug("Conexión cerrada después de llamar a
-     * filtrarDetalladoOP()"); } return null; }
-     *
-     * private List<HashMap<String, Object>> tablaToRemitosDetalladoOP(Table
-     * tabla) { List<HashMap<String, Object>> filas = new ArrayList<>();
-     *
-     * try { for (Row row : tabla.rows()) { // Pedido Remito r = new Remito();
-     * r.setId(row.getInteger("rid"));
-     * r.setFecha_emision(row.getString("rfecha_emision"));
-     * r.setFecha_pago(row.getString("rfecha_pago"));
-     * r.setNro_remito(row.getInteger("rnro_remito"));
-     * r.setPunto_venta(row.getString("rpunto_venta"));
-     * r.setOrden_id(row.getInteger("rorden_id"));
-     * r.setCliente_id(row.getInteger("rcliente_id"));
-     * r.setCliente_cuit_cuil(row.getString("rcliente_cuit_cuil"));
-     * r.setCliente_nombre(row.getString("rcliente_nombre"));
-     * r.setCliente_domicilio(row.getString("rcliente_domicilio"));
-     * r.setCliente_localidad(row.getString("rcliente_localidad"));
-     * r.setCliente_telefono(row.getString("rcliente_telefono"));
-     * r.setObservaciones(row.getString("robservaciones"));
-     * r.setTotal(row.getFloat("rtotal")); // Cliente Cliente c = new Cliente();
-     * c.setId(row.getInteger("cid")); c.setNombre(row.getString("cnombre"));
-     * c.setEmail(row.getString("cemail"));
-     * c.setTelefono(row.getString("ctelefono"));
-     * c.setDireccion(row.getString("cdireccion"));
-     * c.setDni(row.getString("cdni"));
-     * c.setCuit_cuil(row.getString("ccuit_cuil"));
-     * c.setLocalidad(row.getString("clocalidad"));
-     * c.setCodigo_postal(row.getString("ccodigo_postal"));
-     * c.setProvincia(row.getString("cprovincia"));
-     * c.setCond_iva(row.getString("ccond_iva"));
-     *
-     * // Turno (puede no existir) Orden o = new Orden();
-     * o.setId(row.getInteger("oid"));
-     * o.setDescripcion(row.getString("odescripcion"));
-     * o.setEstado_orden(row.getString("oestado_orden"));
-     * o.setTipo(row.getString("otipo"));
-     * o.setFecha_fin(row.getString("ofecha_fin"));
-     * o.setCreado(row.getString("ocreado"));
-     *
-     * /*
-     * // Presupuesto Presupuesto pre = new Presupuesto();
-     * pre.setId(row.getInteger("preid"));
-     * pre.setNombre(row.getString("prenombre"));
-     * pre.setDescripcion(row.getString("predescripcion"));
-     * pre.setEstado_presupuesto(row.getString("preestado_presupuesto"));
-     * pre.setTotal(row.getFloat("pretotal"));
-     * pre.setCreado(row.getString("precreado"));
-     * pre.setUltMod(row.getString("preultMod"));
-     *
-     *
-     * // Armar fila HashMap<String, Object> fila = new HashMap<>();
-     * fila.put("remito", r); fila.put("orden", o); fila.put("cliente", c);
-     *
-     * filas.add(fila); }
-     *
-     * if (logger.isDebugEnabled()) { logger.debug("SELECT query
-     * DAOPresupuesto.tablaToPresupuestosDetalladoOP() - correcto"); }
-     *
-     * } catch (Exception ex) { logger.warn(DAOPresupuesto.class.getName() +
-     * ".tablaToPresupuestosDetalladoOP() Error: " + ex.getMessage(), ex); }
-     *
-     * return filas; }
      */
+    public HashMap<String, Object> filtrarDetalladoOP(String filtro, String desde, String hasta, String formaPago, Integer pagina, Integer tamPag) {
+        String select = "SELECT "
+                // Venta
+                + " v.id AS vid, "
+                + " v.creado AS vcreado, "
+                + " v.ultMod AS vultMod, "
+                + " v.estado AS vestado, "
+                + " v.movimiento_id AS vmovimiento_id, "
+                + " v.cliente_id AS vcliente_id, "
+                + " v.subtotal AS vsubtotal, "
+                + " v.porcentaje_descuento AS vporc_descuento, "
+                + " v.total AS vtotal, "
+                + " v.forma_pago AS vforma_pago, "
+                + " v.punto_venta AS vpunto_venta, "
+                + " v.nro_comprobante AS vnro_comprobante, "
+                + " v.observaciones AS vobservaciones, "
+                // Cliente (opcional)
+                + " c.id AS cid, "
+                + " c.nombre AS cnombre, "
+                + " c.email AS cemail, "
+                + " c.telefono AS ctelefono, "
+                + " c.direccion AS cdireccion, "
+                + " c.dni AS cdni, "
+                + " c.cuit_cuil AS ccuit_cuil, "
+                + " c.localidad AS clocalidad, "
+                + " c.codigo_postal AS ccodigo_postal, "
+                + " c.provincia AS cprovincia, "
+                + " c.cond_iva AS ccond_iva, "
+                + " c.estado AS cestado ";
+        
+        String from = " FROM Venta v "
+                + " JOIN Movimiento m ON v.movimiento_id = m.id "
+                + " LEFT JOIN Cliente c ON v.cliente_id=c.id "
+                //+ " LEFT JOIN Presupuesto pre ON r.presupuesto_id = pre.pedido_id"
+                ;
+
+        String where = " WHERE v.estado = 'ACTIVO' "
+                + " AND m.estado = 'ACTIVO' "
+                + " AND ( c.id IS NULL OR ( c.id IS NOT NULL AND c.estado='ACTIVO' ) )"
+                ;
+
+        if(filtro!=null){
+            where += " AND (c.nombre LIKE :filtro OR v.nro_comprobante LIKE :filtro OR v.observaciones LIKE :filtro)";
+        }
+        if(desde != null && hasta !=null){
+            where += " AND (v.creado BETWEEN :desde AND :hasta)";
+        }
+        if(formaPago !=null){
+            where += " AND v.forma_pago = :formaPago";
+        }
+
+        String orden = " ORDER BY vid DESC " ;
+        String page = " LIMIT :limit OFFSET :offset";
+
+        pagina = pagina == null || pagina < 1 ? 1 : pagina; // control unsusto
+        tamPag = tamPag == null || tamPag < 1 ? 10 : Math.min(tamPag, 1000); // control unsusto
+        Connection con = null;
+        Integer totalElementos = null;
+        Integer totalPaginas = null;
+        List<HashMap<String,Object>> data;
+        try {
+            HashMap<String, Object> response = new HashMap<>();
+            con = ConexionSQL2o.getSql2o().open();
+            Query cq = con.createQuery("SELECT COUNT(*) " + from + where);
+            Query dq = con.createQuery(select + from + where + orden + page);
+
+            if(filtro!=null){
+                cq.addParameter("filtro","%"+ filtro +"%");
+                dq.addParameter("filtro","%"+ filtro +"%");
+            }
+            if(desde != null && hasta !=null){
+                desde +=" 00:00:00";
+                hasta += " 23:59:59";
+                cq.addParameter("desde", desde);
+                dq.addParameter("hasta", hasta);
+                cq.addParameter("hasta", hasta);
+                dq.addParameter("desde", desde);
+            }
+            if(formaPago !=null){
+                cq.addParameter("estadoRemito", formaPago);
+                dq.addParameter("estadoRemito", formaPago);
+            }
+
+            totalElementos = cq.executeAndFetchFirst(Integer.class);
+            totalPaginas = (int) Math.ceil((double) totalElementos / tamPag);
+            logger.debug("Count query ejecutada: " + cq.toString());
+            logger.debug("Datos query por ejecutar: " + dq.toString());
+
+            data = tablaToVentasDetalladoOP(dq
+                    .addParameter("limit", tamPag)
+                    .addParameter("offset", (pagina - 1) * tamPag)
+                    .executeAndFetchTable());
+
+            logger.debug("Datos query ejecutada: " + dq.toString());
+
+            response.put("pagina", pagina);
+            response.put("elementos", tamPag);
+            response.put("t_elementos", totalElementos);
+            response.put("t_paginas", totalPaginas);
+
+
+            if (data != null) response.put("data", data);
+            return response;
+
+        } catch (Sql2oException e) {
+            logger.error("Error SQL en filtrarDetalladoOP(): " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error en filtrarDetalladoOP(): " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close(); // Aunque Sql2o la cierra, aseguramos cierre
+            }
+            logger.debug("Conexión cerrada después de llamar a filtrarDetalladoOP()");
+        }
+        return null;
+    }
+    
+    
+    private List<HashMap<String, Object>> tablaToVentasDetalladoOP(Table tabla) {
+        List<HashMap<String, Object>> filas = new ArrayList<>();
+
+        try {
+            for (Row row : tabla.rows()) {
+                // Pedido
+                Venta v = new Venta();
+                v.setId(row.getInteger("vid"));
+                v.setCreado(row.getString("vcreado"));
+                v.setUltMod(row.getString("vultMod"));
+                v.setEstado(row.getString("vestado"));
+                v.setMovimiento_id(row.getInteger("vmovimiento_id"));
+                v.setCliente_id(row.getInteger("vcliente_id"));
+                v.setSubtotal(row.getFloat("vsubtotal"));
+                v.setPorcentaje_descuento(row.getInteger("vporc_descuento"));
+                v.setTotal(row.getFloat("vtotal"));
+                v.setForma_pago(row.getString("vforma_pago"));
+                v.setPunto_venta(row.getString("vpunto_venta"));
+                v.setNro_comprobante(row.getInteger("vnro_comprobante"));
+                v.setObservaciones(row.getString("vobservaciones"));
+                // Cliente
+                Cliente c = new Cliente();
+                c.setId(row.getInteger("cid"));
+                c.setNombre(row.getString("cnombre"));
+                c.setEmail(row.getString("cemail"));
+                c.setTelefono(row.getString("ctelefono"));
+                c.setDireccion(row.getString("cdireccion"));
+                c.setDni(row.getString("cdni"));
+                c.setCuit_cuil(row.getString("ccuit_cuil"));
+                c.setLocalidad(row.getString("clocalidad"));
+                c.setCodigo_postal(row.getString("ccodigo_postal"));
+                c.setProvincia(row.getString("cprovincia"));
+                c.setCond_iva(row.getString("ccond_iva"));
+
+                                // Armar fila
+                HashMap<String, Object> fila = new HashMap<>();
+                fila.put("venta", v);
+                fila.put("cliente", c);
+
+                filas.add(fila);
+            }
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("SELECT query DAOPresupuesto.tablaToPresupuestosDetalladoOP() - correcto");
+            }
+
+        } catch (Exception ex) {
+            logger.warn(DAOPresupuesto.class.getName() + ".tablaToPresupuestosDetalladoOP() Error: " + ex.getMessage(), ex);
+        }
+
+        return filas;
+    }
     /**
      * @param id
      * @return
@@ -614,10 +646,10 @@ public Integer altaConMovimientoEItems(Venta venta, List<ItemVenta> items) {
                 + " c.cond_iva AS ccond_iva, "
                 + " c.estado AS cestado, "
                 // Movimiento
-                + " m.id AS mid, "
-                + " m.creado AS mcreado, "
-                + " m.ultMod AS multMod, "
-                + " m.estado AS mestado, "
+//                + " m.id AS mid, "
+//                + " m.creado AS mcreado, "
+//                + " m.ultMod AS multMod, "
+//                + " m.estado AS mestado, "
                 // ItemsVenta
                 + " iv.id AS ivid, "
                 + " iv.creado AS ivcreado, "
@@ -627,16 +659,15 @@ public Integer altaConMovimientoEItems(Venta venta, List<ItemVenta> items) {
                 + " iv.porcentaje_descuento AS ivporcentaje_descuento, "
                 + " iv.subtotal AS ivsubtotal, "
                 + " iv.cantidad AS ivcantidad "
-                
-                + "FROM Venta v "
-                + "LEFT JOIN Cliente c ON v.cliente_id = c.id "
-                + "JOIN Movimiento m ON v.movimiento_id = m.id "
-                + "JOIN ItemVenta iv ON v.id = iv.venta_id "
-                + "WHERE v.estado = 'ACTIVO' "
-                + "AND m.estado = 'ACTIVO' "
-                + "AND iv.estado = 'ACTIVO' "
-                + "AND (c.id IS NULL OR c.estado = 'ACTIVO') "
-                + "AND v.id = :id;";
+                + " FROM Venta v "
+                + " LEFT JOIN Cliente c ON v.cliente_id = c.id "
+                + " JOIN Movimiento m ON v.movimiento_id = m.id "
+                + " JOIN ItemVenta iv ON v.id = iv.venta_id "
+                + " WHERE v.estado = 'ACTIVO' "
+                + " AND m.estado = 'ACTIVO' "
+                + " AND iv.estado = 'ACTIVO' "
+                + " AND (c.id IS NULL OR c.estado = 'ACTIVO') "
+                + " AND v.id = :id;";
 
         try {
             con = ConexionSQL2o.getSql2o().open();

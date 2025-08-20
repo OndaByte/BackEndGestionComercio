@@ -9,6 +9,7 @@ import io.javalin.Javalin;
 import io.javalin.community.ssl.SslPlugin;
 import static io.javalin.apibuilder.ApiBuilder.*;
 
+
 import java.io.File;
 import java.time.LocalDate;
 import java.util.concurrent.Executors;
@@ -55,7 +56,6 @@ public class App {
                     
                         path("/caja",()->{
                             post("/movimiento",CajaControlador::movimiento);
-                            post("/venta",CajaControlador::altaVenta);
                             get("/{id}/ultimaSesion", CajaControlador::obtenerUltimaSesion);
                             post("/{id}",CajaControlador::abrir);
                             put("/{id}",CajaControlador::cerrar);
@@ -158,6 +158,15 @@ public class App {
                             post("/{tipo}",TurnoControlador::altaConAsignacion);
                             get("/cant",TurnoControlador::cantEstado);
                             //delete("/{id}",TurnoControlador::baja);
+                        });
+                        
+                        path("/venta",()->{
+                            post(VentaControlador::alta);
+                            put("/{id}",VentaControlador::editar);
+                            get(VentaControlador::filtrarDetalladoPaginado);
+                            put("/{id}/actualizar",VentaControlador::actualizar);
+                            get("/{id}",VentaControlador::buscarDetallado);
+                        
                         });
                     });
                 

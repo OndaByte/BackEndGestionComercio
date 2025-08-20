@@ -108,7 +108,7 @@ VALUES
 INSERT INTO UsuarioRol
 (usuario_id,rol_id)
 VALUES
-(1,1);
+(1,1),
 (2,2);
 
 INSERT INTO Caja (estado_caja, nombre, sesion_actual) VALUES
