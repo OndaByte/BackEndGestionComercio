@@ -485,11 +485,11 @@ public class DAORemito {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("SELECT query DAOPresupuesto.tablaToPresupuestosDetalladoOP() - correcto");
+                logger.debug("SELECT query tablaToRemitoDetalladoOP() - correcto");
             }
 
         } catch (Exception ex) {
-            logger.warn(DAOPresupuesto.class.getName() + ".tablaToPresupuestosDetalladoOP() Error: " + ex.getMessage(), ex);
+            logger.warn("tablaToRemitoDetalladoOP() Error: " + ex.getMessage(), ex);
         }
 
         return filas;
@@ -561,12 +561,12 @@ public class DAORemito {
                     con.createQuery(query).addParameter("id", id).executeAndFetchTable()
             );
         } catch (Exception e) {
-            logger.error("Error inesperado en DAORemito.buscarDetallado(): " + e.getMessage(), e);
+            logger.error("Error inesperado en buscarDetallado(): " + e.getMessage(), e);
         } finally {
             if (con != null) {
                 con.close(); // Aunque Sql2o la cierra, aseguramos cierre
             }
-            logger.debug("Conexión cerrada después de llamar a DAORemito.buscarDetallado()");
+            logger.debug("Conexión cerrada después de llamar a buscarDetallado()");
         }
         return null;
     }
@@ -647,7 +647,7 @@ public class DAORemito {
             }
 
         } catch (Exception ex) {
-            logger.warn(DAOPresupuesto.class.getName() + "tablaToRemitoConItems() Error: " + ex.getMessage(), ex);
+            logger.warn(DAORemito.class.getName() + "tablaToRemitoConItems() Error: " + ex.getMessage(), ex);
         }
 
         return resultado;

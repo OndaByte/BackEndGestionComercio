@@ -81,7 +81,6 @@ public class VentaControlador {
                 JSONObject jo = new JSONObject();
                 jo.put("venta", new JSONObject(objectMapper.writeValueAsString(venta)));
                 jo.put("cliente", new JSONObject(objectMapper.writeValueAsString(cliente)));
-                jo.put("orden", new JSONObject(objectMapper.writeValueAsString(orden)));
                 //jo.put("presupuesto", new JSONObject(objectMapper.writeValueAsString(presupuesto)));
 
                 data.put(jo);

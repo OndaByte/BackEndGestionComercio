@@ -19,81 +19,6 @@ public class DAOVenta {
 
     private static final Logger logger = LogManager.getLogger(DAOVenta.class.getName());
 
-    // Alta con ítems
-//    public Integer altaConItems(Venta venta, List<ItemVenta> items) {
-//        Connection con=null;
-//        
-//        String selectMaxNroRemito = "SELECT IFNULL(MAX(nro_comprobante), 0) + 1 AS nuevo_nro FROM Venta";
-//            
-//        String insertVenta = """ 
-//                INSERT INTO Venta ( 
-//                fecha_emision, 
-//                fecha_pago, 
-//                nro_remito, 
-//                punto_venta, 
-//                total,
-//                observaciones 
-//                ) VALUES ( 
-//                :fecha_emision,
-//                :fecha_pago,
-//                :nro_remito,
-//                :punto_venta,
-//                :total, 
-//                :orden_id,
-//                :cliente_id, 
-//                :cliente_cuit_cuil, 
-//                :cliente_nombre,  
-//                :cliente_domicilio, 
-//                :cliente_localidad, 
-//                :cliente_telefono, 
-//                :observaciones
-//                )
-//                """;
-//        try {
-//            con = ConexionSQL2o.getSql2o().beginTransaction();
-//            Integer nuevoNroRemito = con.createQuery(selectMaxNroRemito)
-//                                        .executeScalar(Integer.class);
-//            venta.setNro_remito(nuevoNroRemito);
-//            
-//            Integer remitoId = con.createQuery(insertRemito, true)
-//                    .addParameter("fecha_emision", remito.getFecha_emision())
-//                    .addParameter("fecha_pago", remito.getFecha_pago())
-//                    .addParameter("nro_remito", remito.getNro_remito())
-//                    .addParameter("punto_venta", remito.getPunto_venta())
-//                    .addParameter("total", remito.getTotal())
-//                    .addParameter("orden_id", remito.getOrden_id())
-//                    .addParameter("cliente_id", remito.getCliente_id())
-//                    .addParameter("cliente_cuit_cuil", remito.getCliente_cuit_cuil())
-//                    .addParameter("cliente_nombre", remito.getCliente_nombre())
-//                    .addParameter("cliente_domicilio", remito.getCliente_domicilio())
-//                    .addParameter("cliente_localidad", remito.getCliente_localidad())
-//                    .addParameter("cliente_telefono", remito.getCliente_telefono())
-//                    .addParameter("observaciones", remito.getObservaciones())
-//                    .executeUpdate()
-//                    .getKey(Integer.class);
-//
-//            this.altaItems(con,remitoId,items);
-//
-//            con.commit();
-//            
-//            logger.debug("Remito y items insertados con ID: " + remitoId);
-//            return remitoId;
-//
-//        }  catch (Sql2oException e) {
-//            if (con != null) {
-//                con.rollback();
-//                logger.warn("Rollback ejecutado por error en altaConItems()."+ e.getMessage(), e);
-//            }
-//        } catch (Exception e) {
-//            logger.error("Error en altaConItems(): " + e.getMessage(), e);
-//        } finally {
-//            if (con != null) {
-//                con.close(); // Aunque Sql2o la cierra, aseguramos cierre
-//            }
-//            logger.debug("Conexión cerrada después de llamar a altaConItems()");
-//        }
-//        return -1;
-//    }
     // Alta de Venta con ítems
     public Integer altaConItems(Venta venta, List<ItemVenta> items) {
         Connection con = null;
@@ -276,7 +201,7 @@ public class DAOVenta {
     }
 
     /**
-     * Borra todos los ítems de un remito y vuelve a insertarlos. Usa la misma
+     * Borra todos los ítems de una venta y vuelve a insertarlos. Usa la misma
      * Connection para mantener la transacción abierta.
      */
     private void altaItems(Connection con, Integer ventaId, List<ItemVenta> items) {
@@ -430,16 +355,15 @@ public class DAOVenta {
     }
 
     /**
-     * Devuelve Venta y  Cliente:
-     * Presupuesto si existe.
+     * Devuelve Venta y Cliente: Presupuesto si existe.
+     *
      * @param filtro Filtra por nombre de cliente o por descripción de remito
      * @param desde Fecha desde creado remito.
      * @param hasta Fecha hasta creado remito
-     * @param estadoRemito estado_remito
+     * @param formaPago estado_remito
      * @param pagina Numero de página
      * @param tamPag Tamaño de página
      * @return Respuesta con data + paginado.
-     *
      */
     public HashMap<String, Object> filtrarDetalladoOP(String filtro, String desde, String hasta, String formaPago, Integer pagina, Integer tamPag) {
         String select = "SELECT "
@@ -470,29 +394,27 @@ public class DAOVenta {
                 + " c.provincia AS cprovincia, "
                 + " c.cond_iva AS ccond_iva, "
                 + " c.estado AS cestado ";
-        
+
         String from = " FROM Venta v "
                 + " JOIN Movimiento m ON v.movimiento_id = m.id "
-                + " LEFT JOIN Cliente c ON v.cliente_id=c.id "
-                //+ " LEFT JOIN Presupuesto pre ON r.presupuesto_id = pre.pedido_id"
+                + " LEFT JOIN Cliente c ON v.cliente_id=c.id " //+ " LEFT JOIN Presupuesto pre ON r.presupuesto_id = pre.pedido_id"
                 ;
 
         String where = " WHERE v.estado = 'ACTIVO' "
                 + " AND m.estado = 'ACTIVO' "
-                + " AND ( c.id IS NULL OR ( c.id IS NOT NULL AND c.estado='ACTIVO' ) )"
-                ;
+                + " AND ( c.id IS NULL OR ( c.id IS NOT NULL AND c.estado='ACTIVO' ) )";
 
-        if(filtro!=null){
+        if (filtro != null) {
             where += " AND (c.nombre LIKE :filtro OR v.nro_comprobante LIKE :filtro OR v.observaciones LIKE :filtro)";
         }
-        if(desde != null && hasta !=null){
+        if (desde != null && hasta != null) {
             where += " AND (v.creado BETWEEN :desde AND :hasta)";
         }
-        if(formaPago !=null){
+        if (formaPago != null) {
             where += " AND v.forma_pago = :formaPago";
         }
 
-        String orden = " ORDER BY vid DESC " ;
+        String orden = " ORDER BY vid DESC ";
         String page = " LIMIT :limit OFFSET :offset";
 
         pagina = pagina == null || pagina < 1 ? 1 : pagina; // control unsusto
@@ -500,26 +422,26 @@ public class DAOVenta {
         Connection con = null;
         Integer totalElementos = null;
         Integer totalPaginas = null;
-        List<HashMap<String,Object>> data;
+        List<HashMap<String, Object>> data;
         try {
             HashMap<String, Object> response = new HashMap<>();
             con = ConexionSQL2o.getSql2o().open();
             Query cq = con.createQuery("SELECT COUNT(*) " + from + where);
             Query dq = con.createQuery(select + from + where + orden + page);
 
-            if(filtro!=null){
-                cq.addParameter("filtro","%"+ filtro +"%");
-                dq.addParameter("filtro","%"+ filtro +"%");
+            if (filtro != null) {
+                cq.addParameter("filtro", "%" + filtro + "%");
+                dq.addParameter("filtro", "%" + filtro + "%");
             }
-            if(desde != null && hasta !=null){
-                desde +=" 00:00:00";
+            if (desde != null && hasta != null) {
+                desde += " 00:00:00";
                 hasta += " 23:59:59";
                 cq.addParameter("desde", desde);
                 dq.addParameter("hasta", hasta);
                 cq.addParameter("hasta", hasta);
                 dq.addParameter("desde", desde);
             }
-            if(formaPago !=null){
+            if (formaPago != null) {
                 cq.addParameter("estadoRemito", formaPago);
                 dq.addParameter("estadoRemito", formaPago);
             }
@@ -541,8 +463,9 @@ public class DAOVenta {
             response.put("t_elementos", totalElementos);
             response.put("t_paginas", totalPaginas);
 
-
-            if (data != null) response.put("data", data);
+            if (data != null) {
+                response.put("data", data);
+            }
             return response;
 
         } catch (Sql2oException e) {
@@ -557,8 +480,7 @@ public class DAOVenta {
         }
         return null;
     }
-    
-    
+
     private List<HashMap<String, Object>> tablaToVentasDetalladoOP(Table tabla) {
         List<HashMap<String, Object>> filas = new ArrayList<>();
 
@@ -581,19 +503,20 @@ public class DAOVenta {
                 v.setObservaciones(row.getString("vobservaciones"));
                 // Cliente
                 Cliente c = new Cliente();
-                c.setId(row.getInteger("cid"));
-                c.setNombre(row.getString("cnombre"));
-                c.setEmail(row.getString("cemail"));
-                c.setTelefono(row.getString("ctelefono"));
-                c.setDireccion(row.getString("cdireccion"));
-                c.setDni(row.getString("cdni"));
-                c.setCuit_cuil(row.getString("ccuit_cuil"));
-                c.setLocalidad(row.getString("clocalidad"));
-                c.setCodigo_postal(row.getString("ccodigo_postal"));
-                c.setProvincia(row.getString("cprovincia"));
-                c.setCond_iva(row.getString("ccond_iva"));
-
-                                // Armar fila
+                if (row.getObject("cid") != null) {
+                    c.setId(row.getInteger("cid"));
+                    c.setNombre(row.getString("cnombre"));
+                    c.setEmail(row.getString("cemail"));
+                    c.setTelefono(row.getString("ctelefono"));
+                    c.setDireccion(row.getString("cdireccion"));
+                    c.setDni(row.getString("cdni"));
+                    c.setCuit_cuil(row.getString("ccuit_cuil"));
+                    c.setLocalidad(row.getString("clocalidad"));
+                    c.setCodigo_postal(row.getString("ccodigo_postal"));
+                    c.setProvincia(row.getString("cprovincia"));
+                    c.setCond_iva(row.getString("ccond_iva"));
+                }
+                // Armar fila
                 HashMap<String, Object> fila = new HashMap<>();
                 fila.put("venta", v);
                 fila.put("cliente", c);
@@ -602,15 +525,16 @@ public class DAOVenta {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("SELECT query DAOPresupuesto.tablaToPresupuestosDetalladoOP() - correcto");
+                logger.debug("SELECT query tablaToVentasDetalladoOP() - correcto");
             }
 
         } catch (Exception ex) {
-            logger.warn(DAOPresupuesto.class.getName() + ".tablaToPresupuestosDetalladoOP() Error: " + ex.getMessage(), ex);
+            logger.warn("tablaToVentasDetalladoOP() Error: " + ex.getMessage(), ex);
         }
 
         return filas;
     }
+
     /**
      * @param id
      * @return
@@ -646,10 +570,10 @@ public class DAOVenta {
                 + " c.cond_iva AS ccond_iva, "
                 + " c.estado AS cestado, "
                 // Movimiento
-//                + " m.id AS mid, "
-//                + " m.creado AS mcreado, "
-//                + " m.ultMod AS multMod, "
-//                + " m.estado AS mestado, "
+                //                + " m.id AS mid, "
+                //                + " m.creado AS mcreado, "
+                //                + " m.ultMod AS multMod, "
+                //                + " m.estado AS mestado, "
                 // ItemsVenta
                 + " iv.id AS ivid, "
                 + " iv.creado AS ivcreado, "
@@ -694,7 +618,6 @@ public class DAOVenta {
 
         try {
             for (Row row : tabla.rows()) {
-
                 if (v == null) {
                     v = new Venta();
                     v.setId(row.getInteger("vid"));
@@ -712,21 +635,22 @@ public class DAOVenta {
                     v.setObservaciones(row.getString("vobservaciones"));
                 }
 
-                // Cliente es opcional: sólo instanciar si hay cid
-                if (c == null && row.getObject("cid") != null) {
+                if (c == null) {
                     c = new Cliente();
-                    c.setId(row.getInteger("cid"));
-                    c.setNombre(row.getString("cnombre"));
-                    c.setEmail(row.getString("cemail"));
-                    c.setTelefono(row.getString("ctelefono"));
-                    c.setDireccion(row.getString("cdireccion"));
-                    c.setDni(row.getString("cdni"));
-                    c.setCuit_cuil(row.getString("ccuit_cuil"));
-                    c.setLocalidad(row.getString("clocalidad"));
-                    c.setCodigo_postal(row.getString("ccodigo_postal"));
-                    c.setProvincia(row.getString("cprovincia"));
-                    c.setCond_iva(row.getString("ccond_iva"));
-                    c.setEstado(row.getString("cestado"));
+                    if (row.getObject("cid") != null) {
+                        c.setId(row.getInteger("cid"));
+                        c.setNombre(row.getString("cnombre"));
+                        c.setEmail(row.getString("cemail"));
+                        c.setTelefono(row.getString("ctelefono"));
+                        c.setDireccion(row.getString("cdireccion"));
+                        c.setDni(row.getString("cdni"));
+                        c.setCuit_cuil(row.getString("ccuit_cuil"));
+                        c.setLocalidad(row.getString("clocalidad"));
+                        c.setCodigo_postal(row.getString("ccodigo_postal"));
+                        c.setProvincia(row.getString("cprovincia"));
+                        c.setCond_iva(row.getString("ccond_iva"));
+                        c.setEstado(row.getString("cestado"));
+                    }
                 }
 
                 if (m == null) {
@@ -752,10 +676,7 @@ public class DAOVenta {
 
             resultado.put("venta", v);
             resultado.put("movimiento", m);
-            // cliente es opcional: sólo incluir si no es null
-            if (c != null) {
-                resultado.put("cliente", c);
-            }
+            resultado.put("cliente", c);
             resultado.put("items", items);
 
             if (logger.isDebugEnabled()) {
@@ -766,5 +687,144 @@ public class DAOVenta {
             logger.warn(DAOVenta.class.getName() + " tablaToVentaConItems() Error: " + ex.getMessage(), ex);
         }
         return resultado;
+    }
+
+    public HashMap<String, Object> resumenVentas(String filtro, String desde, String hasta) {
+        Connection con = null;
+        HashMap<String, Object> response = new HashMap<>();
+        try {
+            con = ConexionSQL2o.getSql2o().open();
+
+            // Fechas (si vienen)
+            if (desde != null && hasta != null) {
+                desde += " 00:00:00";
+                hasta += " 23:59:59";
+            }
+
+            // WHERE base sobre Venta
+            String filtroComun = " WHERE estado = 'ACTIVO'";
+            if (filtro != null && !filtro.isEmpty()) {
+                // Sin JOINs: uso campos propios de Venta
+                filtroComun += " AND (nro_comprobante LIKE :filtro OR observaciones LIKE :filtro)";
+            }
+            if (desde != null && hasta != null) {
+                filtroComun += " AND creado BETWEEN :desde AND :hasta";
+            }
+
+            // Totales por forma de pago y total general
+            String sqlEfectivo = "SELECT SUM(total) FROM Venta" + filtroComun + " AND forma_pago = 'EFECTIVO'";
+            String sqlTransferencia = "SELECT SUM(total) FROM Venta" + filtroComun + " AND forma_pago = 'TRANSFERENCIA'";
+            String sqlTotalVentas = "SELECT SUM(total) FROM Venta" + filtroComun;
+
+            // Preparar queries
+            Query qEfec = con.createQuery(sqlEfectivo);
+            Query qTrans = con.createQuery(sqlTransferencia);
+            Query qTotal = con.createQuery(sqlTotalVentas);
+
+            // Parámetros
+            if (filtro != null && !filtro.isEmpty()) {
+                qEfec.addParameter("filtro", "%" + filtro + "%");
+                qTrans.addParameter("filtro", "%" + filtro + "%");
+                qTotal.addParameter("filtro", "%" + filtro + "%");
+            }
+            if (desde != null && hasta != null) {
+                qEfec.addParameter("desde", desde).addParameter("hasta", hasta);
+                qTrans.addParameter("desde", desde).addParameter("hasta", hasta);
+                qTotal.addParameter("desde", desde).addParameter("hasta", hasta);
+            }
+
+            // Ejecutar
+            Float totalEfectivo = qEfec.executeAndFetchFirst(Float.class);
+            Float totalTransferencia = qTrans.executeAndFetchFirst(Float.class);
+            Float totalVentas = qTotal.executeAndFetchFirst(Float.class);
+
+            // Null-safe
+            totalEfectivo = totalEfectivo == null ? 0f : totalEfectivo;
+            totalTransferencia = totalTransferencia == null ? 0f : totalTransferencia;
+            totalVentas = totalVentas == null ? 0f : totalVentas;
+
+            // Respuesta
+            response.put("total_efectivo", totalEfectivo);
+            response.put("total_transferencia", totalTransferencia);
+            response.put("total_ventas", totalVentas);
+
+            return response;
+
+        } catch (Exception e) {
+            logger.error("resumenVentas: " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close();
+                logger.debug("resumenVentas: Conexión cerrada");
+            }
+        }
+        return null;
+    }
+
+    public HashMap<String, Object> resumenVentasConContador(String filtro, String desde, String hasta) {
+        Connection con = null;
+        HashMap<String, Object> r = new HashMap<>();
+        try {
+            con = ConexionSQL2o.getSql2o().open();
+
+            if (desde != null && hasta != null) {
+                desde += " 00:00:00";
+                hasta += " 23:59:59";
+            }
+
+            String where = " WHERE estado = 'ACTIVO'";
+            if (filtro != null && !filtro.isEmpty()) {
+                where += " AND (nro_comprobante LIKE :filtro OR observaciones LIKE :filtro)";
+            }
+            if (desde != null && hasta != null) {
+                where += " AND creado BETWEEN :desde AND :hasta";
+            }
+
+            String sql
+                    = "SELECT "
+                    + " COALESCE(SUM(CASE WHEN forma_pago='EFECTIVO' THEN total ELSE 0 END),0)       AS total_efectivo, "
+                    + " COALESCE(SUM(CASE WHEN forma_pago='TRANSFERENCIA' THEN total ELSE 0 END),0)  AS total_transferencia, "
+                    + " COALESCE(SUM(total),0)                                                      AS total_ventas, "
+                    + " COALESCE(SUM(CASE WHEN forma_pago='EFECTIVO' THEN 1 ELSE 0 END),0)          AS cant_efectivo, "
+                    + " COALESCE(SUM(CASE WHEN forma_pago='TRANSFERENCIA' THEN 1 ELSE 0 END),0)     AS cant_transferencia, "
+                    + " COUNT(*)                                                                     AS cant_ventas "
+                    + "FROM Venta" + where;
+
+            Query q = con.createQuery(sql);
+            if (filtro != null && !filtro.isEmpty()) {
+                q.addParameter("filtro", "%" + filtro + "%");
+            }
+            if (desde != null && hasta != null) {
+                q.addParameter("desde", desde).addParameter("hasta", hasta);
+            }
+
+            var t = q.executeAndFetchTable();
+            var row = t.rows().isEmpty() ? null : t.rows().get(0);
+
+            Float totalEfec = row == null ? 0f : (row.getFloat("total_efectivo") == null ? 0f : row.getFloat("total_efectivo"));
+            Float totalTrans = row == null ? 0f : (row.getFloat("total_transferencia") == null ? 0f : row.getFloat("total_transferencia"));
+            Float totalVent = row == null ? 0f : (row.getFloat("total_ventas") == null ? 0f : row.getFloat("total_ventas"));
+
+            Integer cantEfec = row == null ? 0 : (row.getInteger("cant_efectivo") == null ? 0 : row.getInteger("cant_efectivo"));
+            Integer cantTrans = row == null ? 0 : (row.getInteger("cant_transferencia") == null ? 0 : row.getInteger("cant_transferencia"));
+            Integer cantVent = row == null ? 0 : (row.getInteger("cant_ventas") == null ? 0 : row.getInteger("cant_ventas"));
+
+            r.put("total_efectivo", totalEfec);
+            r.put("total_transferencia", totalTrans);
+            r.put("total_ventas", totalVent);
+            r.put("cant_efectivo", cantEfec);
+            r.put("cant_transferencia", cantTrans);
+            r.put("cant_ventas", cantVent);
+
+            return r;
+
+        } catch (Exception e) {
+            logger.error("resumenVentasConContador: " + e.getMessage(), e);
+        } finally {
+            if (con != null) {
+                con.close();
+            }
+        }
+        return null;
     }
 }
