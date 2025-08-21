@@ -172,8 +172,8 @@ VALUES
 INSERT INTO `Producto` 
 (`categoria_id`, `nombre`, `codigo_barra`, `descripcion`, `precio_costo`, `porcentaje_ganancia`, `porcentaje_descuento`, `stock`) 
 VALUES
-(1, 'Café Molido Premium', '1234567890123', 'Café arábica molido, bolsa de 500g.', 5.50, 40, 10, 50),
-(1, 'Té Verde Orgánico', '2345678901234', 'Hojas de té verde orgánico, 200g.', 4.20, 35, 5, 30),
+(1, 'Café Molido Premium',NULL , 'Café arábica molido, bolsa de 500g.', 5.50, 40, 10, 50),
+(1, 'Té Verde Orgánico', NULL, 'Hojas de té verde orgánico, 200g.', 4.20, 35, 5, 30),
 (2, 'Pan Integral Artesanal', '3456789012345', 'Pan integral de masa madre.', 1.80, 50, 0, 20),
 (2, 'Galletas de Avena', '4567890123456', 'Galletas saludables con avena y pasas.', 2.50, 45, 15, 40),
 (3, 'Jugo Natural de Naranja', '5678901234567', 'Jugo 100% exprimido, botella 1L.', 3.00, 30, 0, 25),
