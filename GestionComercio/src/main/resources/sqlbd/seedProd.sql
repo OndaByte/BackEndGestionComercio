@@ -1,3 +1,4 @@
+
 -- Inserciones para Rol
 INSERT INTO Rol (nombre) VALUES
 ('ADMIN'),
@@ -6,6 +7,20 @@ INSERT INTO Rol (nombre) VALUES
 
 -- Inserciones para Permiso
 INSERT INTO Permiso (nombre) VALUES
+('CAJA_ABRIR'),
+('CAJA_CERRAR'),
+('CAJA_VENTA'),
+('CAJA_VER_INFO'),
+('CATEGORIA_ALTA'),
+('CATEGORIA_BAJA'),
+('CATEGORIA_LISTAR'),
+('CATEGORIA_MODIFICAR'),
+('DESCUENTO_PRECIO_UNITARIO'),
+('DESCUENTO_SOBRE_TOTAL'),
+('MOVIMIENTO_ALTA'),
+('MOVIMIENTO_BAJA'),
+('MOVIMIENTO_LISTAR'),
+('MOVIMIENTO_MODIFICAR'),
 ('CLIENTE_ALTA'),
 ('CLIENTE_BAJA'),
 ('CLIENTE_LISTAR'),
@@ -18,30 +33,10 @@ INSERT INTO Permiso (nombre) VALUES
 ('GASTO_BAJA'),
 ('GASTO_LISTAR'),
 ('GASTO_MODIFICAR'),
-('INSUMO_ALTA'),
-('INSUMO_BAJA'),
-('INSUMO_LISTAR'),
-('INSUMO_MODIFICAR'),
-('ORDEN_ALTA'),
-('ORDEN_BAJA'),
-('ORDEN_LISTAR'),
-('ORDEN_MODIFICAR'),
-('PEDIDO_ALTA'),
-('PEDIDO_BAJA'),
-('PEDIDO_LISTAR'),
-('PEDIDO_MODIFICAR'),
-('PRESUPUESTO_ALTA'),
-('PRESUPUESTO_BAJA'),
-('PRESUPUESTO_LISTAR'),
-('PRESUPUESTO_MODIFICAR'),
 ('PRODUCTO_ALTA'),
 ('PRODUCTO_BAJA'),
 ('PRODUCTO_LISTAR'),
 ('PRODUCTO_MODIFICAR'),
-('TURNO_ALTA'),
-('TURNO_BAJA'),
-('TURNO_LISTAR'),
-('TURNO_MODIFICAR'),
 ('USUARIO_ALTA'),
 ('USUARIO_BAJA'),
 ('USUARIO_LISTAR'),
@@ -83,21 +78,12 @@ INSERT INTO RolPermiso (rol_id, permiso_id) VALUES
 (1, 32),
 (1, 33),
 (1, 34),
-(1, 35),
-(1, 36),
-(2, 1), -- Empleado puede dar de ALTA un cliente
-(2, 3), -- Empleado puede LISTAR los cliente
-(2, 4), -- Empleado puede MODIFICAR un cliente
-(2, 21), -- Empleado puede dar de ALTA pedido
-(2, 23), -- Empleado puede LISTAR los pedidos
-(2, 24), -- Empleado puede MODIFICAR un pedido
-(2, 15), -- Empleado puede LISTAR los insumos
-(2, 16), -- Empleado puede MODIFICAR un insumo
-(2, 17), -- Empleado puede dar de ALtA una orden
-(2, 19), -- Empleado puede actualizar orden ¿CUAL ES LA DIFERENCIA? (LISTAR)
-(2, 20), -- Empleado puede MODIFICAR una orden
-(2, 36), -- Empleado deberia poder cambiar su contra
-(3, 36); -- Usuario deberia poder cambiar su contra
+(2, 1), -- Vendedor abre caja
+(2, 3), -- Vendedor hace venta
+(2, 7), -- Vendedor puede ver y buscar categorias
+(2, 29), -- Vendedor puede ver y buscar productos
+(2, 34), -- Vendedor puede cambiar su contra
+(3, 34); -- Usuario puede cambiar su contra
 
 INSERT INTO Usuario
 (estado,usuario,contra)
