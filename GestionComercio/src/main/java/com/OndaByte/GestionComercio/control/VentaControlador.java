@@ -202,20 +202,18 @@ public class VentaControlador {
             }
 
             Cliente c = (Cliente) data.get("cliente");
-            Orden o = (Orden) data.get("orden");
+           
             Venta venta = (Venta) data.get("venta");
             List<ItemVenta> items = (List<ItemVenta>) data.get("items");
 
             ObjectMapper objectMapper = new ObjectMapper();
             JSONObject jsonVenta = new JSONObject(objectMapper.writeValueAsString(venta));
             JSONObject jsonCliente = new JSONObject(objectMapper.writeValueAsString(c));
-            JSONObject jsonOrden = new JSONObject(objectMapper.writeValueAsString(o));
             JSONArray jsonItems = new JSONArray(objectMapper.writeValueAsString(items));
 
             JSONObject respuesta = new JSONObject();
             respuesta.put("venta", jsonVenta);
             respuesta.put("cliente", jsonCliente);
-            respuesta.put("orden", jsonOrden);
             respuesta.put("items", jsonItems);
 
             ctx.status(200).json(buildRespuesta(

@@ -585,10 +585,10 @@ public class DAOVenta {
                 + " iv.cantidad AS ivcantidad "
                 + " FROM Venta v "
                 + " LEFT JOIN Cliente c ON v.cliente_id = c.id "
-                + " JOIN Movimiento m ON v.movimiento_id = m.id "
+//                + " JOIN Movimiento m ON v.movimiento_id = m.id "
                 + " JOIN ItemVenta iv ON v.id = iv.venta_id "
                 + " WHERE v.estado = 'ACTIVO' "
-                + " AND m.estado = 'ACTIVO' "
+//                + " AND m.estado = 'ACTIVO' "
                 + " AND iv.estado = 'ACTIVO' "
                 + " AND (c.id IS NULL OR c.estado = 'ACTIVO') "
                 + " AND v.id = :id;";
@@ -653,13 +653,13 @@ public class DAOVenta {
                     }
                 }
 
-                if (m == null) {
-                    m = new Movimiento();
-                    m.setId(row.getInteger("mid"));
-                    m.setCreado(row.getString("mcreado"));
-                    m.setUltMod(row.getString("multMod"));
-                    m.setEstado(row.getString("mestado"));
-                }
+//                if (m == null) {
+//                    m = new Movimiento();
+//                    m.setId(row.getInteger("mid"));
+//                    m.setCreado(row.getString("mcreado"));
+//                    m.setUltMod(row.getString("multMod"));
+//                    m.setEstado(row.getString("mestado"));
+//                }
 
                 ItemVenta iv = new ItemVenta();
                 iv.setId(row.getInteger("ivid"));
@@ -675,7 +675,7 @@ public class DAOVenta {
             }
 
             resultado.put("venta", v);
-            resultado.put("movimiento", m);
+//            resultado.put("movimiento", m);
             resultado.put("cliente", c);
             resultado.put("items", items);
 
