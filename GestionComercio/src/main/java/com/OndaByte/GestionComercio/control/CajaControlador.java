@@ -7,9 +7,11 @@ import com.OndaByte.GestionComercio.modelo.Movimiento;
 import com.OndaByte.GestionComercio.DAO.DAOCaja;
 import com.OndaByte.GestionComercio.DAO.DAOVenta;
 import com.OndaByte.GestionComercio.modelo.ItemVenta;
+import com.OndaByte.GestionComercio.modelo.SesionCaja;
 import com.OndaByte.GestionComercio.modelo.Venta;
 import static com.OndaByte.GestionComercio.util.Respuesta.buildRespuesta;
 import com.OndaByte.config.Constantes;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -249,6 +251,71 @@ public class CajaControlador {
         }
     }
 
+    public static void filtrarDetalladoOP(Context ctx) {
+        logger.debug("filtrarDetallado");
+        try {
+            Integer pagina = Parsero.safeParse(ctx.queryParam("pagina"));
+            Integer cantElementos = Parsero.safeParse(ctx.queryParam("elementos"));
+            DAOCaja dao = new DAOCaja();
+            String filtro = ctx.queryParam("filtro");
+            String desde = ctx.queryParam("desde");
+            String hasta = ctx.queryParam("hasta");
+            String estado = ctx.queryParam("estado");
+
+            logger.debug("Filtrar:\n" + filtro);
+
+            if (pagina == null || cantElementos == null) {
+                ctx.status(400).result(buildRespuesta(400, null, "No ha especificado correctamente los parámetros"));
+                return;
+            }
+            if (filtro != null && filtro.isEmpty()) filtro = null;
+            if (desde != null && desde.isEmpty()) desde = null;
+            if (hasta != null && hasta.isEmpty()) hasta = null;
+            if (estado != null && estado.isEmpty()) estado = null;
+                        
+            HashMap<String, Object> resultDao = dao.filtrarSesionesCajaOP(desde, hasta, estado, pagina, cantElementos);
+
+            List<HashMap<String, Object>> filas = (List<HashMap<String, Object>>) resultDao.get("data");
+
+            if (filas == null) {
+                ctx.status(404).result(buildRespuesta(404, null, "No se encontraron ventas"));
+                return;
+            }
+
+            JSONArray data = new JSONArray();
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            for (HashMap<String, Object> fila : filas) {
+                SesionCaja sesionCaja = (SesionCaja) fila.get("sesion");
+                //Presupuesto presupuesto = (Presupuesto) fila.get("presupuesto");
+
+                JSONObject jo = new JSONObject();
+                jo.put("sesion", new JSONObject(objectMapper.writeValueAsString(sesionCaja)));
+//                jo.put("cliente", new JSONObject(objectMapper.writeValueAsString(cliente)));
+                //jo.put("presupuesto", new JSONObject(objectMapper.writeValueAsString(presupuesto)));
+
+                data.put(jo);
+            }
+
+            ctx.status(200).json(buildRespuesta(
+                    200,
+                    data.toString(),
+                    "",
+                    resultDao.get("pagina") + "",
+                    resultDao.get("elementos") + "",
+                    resultDao.get("t_elementos") + "",
+                    resultDao.get("t_paginas") + ""
+            ));
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (ctx != null) {
+                ctx.status(500).result(buildRespuesta(500, null, "Error inesperado"));
+            }
+            logger.error("movimientosCajaOP: " + e.getMessage());
+        }
+    }
     public static void movimientosCajaOP(Context ctx) {
         logger.debug("movimientosCajaOP");
         try {
@@ -322,7 +389,7 @@ public class CajaControlador {
         }
     }
 
-    public static void resumenCaja(Context ctx) {
+    public static void resumenMovimientosCaja(Context ctx) {
         logger.debug("resumenCajaOP");
         try {
             String filtro = ctx.queryParam("filtro");
@@ -338,7 +405,44 @@ public class CajaControlador {
                 hasta = null;
             }
             DAOCaja dao = new DAOCaja();
-            HashMap<String, Object> resumen = dao.resumenCaja(filtro, desde, hasta);
+            HashMap<String, Object> resumen = dao.resumenMovimientosCaja(filtro, desde, hasta);
+
+            if (resumen == null) {
+                ctx.status(404).result(buildRespuesta(404, null, "No se pudo generar el resumen"));
+                return;
+            }
+
+            ctx.status(200).json(buildRespuesta(
+                    200,
+                    new JSONObject(resumen).toString(), // Se puede devolver directo como JSON
+                    "Resumen generado correctamente"
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (ctx != null) {
+                ctx.status(500).result(buildRespuesta(500, null, "Error inesperado"));
+            }
+            logger.error("resumenCajaOP: " + e.getMessage());
+        }
+    }
+    
+    public static void resumenSesionesCaja(Context ctx) {
+        logger.debug("resumenCajaOP");
+        try {
+            String filtro = ctx.queryParam("filtro");
+            String desde = ctx.queryParam("desde");
+            String hasta = ctx.queryParam("hasta");
+            if (filtro != null && filtro.isEmpty()) {
+                filtro = null;
+            }
+            if (desde != null && desde.isEmpty()) {
+                desde = null;
+            }
+            if (hasta != null && hasta.isEmpty()) {
+                hasta = null;
+            }
+            DAOCaja dao = new DAOCaja();
+            HashMap<String, Object> resumen = dao.resumenSesionesCaja(filtro, desde, hasta);
 
             if (resumen == null) {
                 ctx.status(404).result(buildRespuesta(404, null, "No se pudo generar el resumen"));

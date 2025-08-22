@@ -307,4 +307,40 @@ public class VentaControlador {
             logger.error("baja() " + e.getMessage());
         }
     }
+    public static void resumenVenta(Context ctx) {
+        logger.debug("resumenVenta");
+        try {
+            String filtro = ctx.queryParam("filtro");
+            String desde = ctx.queryParam("desde");
+            String hasta = ctx.queryParam("hasta");
+            if (filtro != null && filtro.isEmpty()) {
+                filtro = null;
+            }
+            if (desde != null && desde.isEmpty()) {
+                desde = null;
+            }
+            if (hasta != null && hasta.isEmpty()) {
+                hasta = null;
+            }
+            DAOVenta dao = new DAOVenta();
+            HashMap<String, Object> resumen = dao.resumenVentasConContador(filtro, desde, hasta);
+
+            if (resumen == null) {
+                ctx.status(404).result(buildRespuesta(404, null, "No se pudo generar el resumen"));
+                return;
+            }
+
+            ctx.status(200).json(buildRespuesta(
+                    200,
+                    new JSONObject(resumen).toString(), // Se puede devolver directo como JSON
+                    "Resumen generado correctamente"
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (ctx != null) {
+                ctx.status(500).result(buildRespuesta(500, null, "Error inesperado"));
+            }
+            logger.error("resumenCajaOP: " + e.getMessage());
+        }
+    }
 }

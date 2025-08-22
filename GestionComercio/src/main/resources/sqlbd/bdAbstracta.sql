@@ -261,7 +261,7 @@ DROP TRIGGER IF EXISTS actualizar_total_cerrar_sesion;
 DROP TRIGGER IF EXISTS alta_movimiento_valido;
 DROP TRIGGER IF EXISTS alta_movimiento_gasto;
 DROP TRIGGER IF EXISTS alta_movimiento_venta;
-DROP TRIGGER IF EXISTS actualiza_movimiento_venta_desc;
+DROP TRIGGER IF EXISTS actualiza_movimiento_venta_descr;
 DROP TRIGGER IF EXISTS descontar_stock_venta;
 
 DELIMITER $$
@@ -401,7 +401,7 @@ BEGIN
     END IF;
 END;
 
-CREATE TRIGGER actualiza_movimiento_venta_desc
+CREATE TRIGGER actualiza_movimiento_venta_descr
 AFTER INSERT ON Venta
 FOR EACH ROW
 BEGIN

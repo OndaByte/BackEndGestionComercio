@@ -442,8 +442,8 @@ public class DAOVenta {
                 dq.addParameter("desde", desde);
             }
             if (formaPago != null) {
-                cq.addParameter("estadoRemito", formaPago);
-                dq.addParameter("estadoRemito", formaPago);
+                cq.addParameter("formaPago", formaPago);
+                dq.addParameter("formaPago", formaPago);
             }
 
             totalElementos = cq.executeAndFetchFirst(Integer.class);
@@ -772,7 +772,7 @@ public class DAOVenta {
                 hasta += " 23:59:59";
             }
 
-            String where = " WHERE estado = 'ACTIVO'";
+            String where = " WHERE v.estado = 'ACTIVO' ";
             if (filtro != null && !filtro.isEmpty()) {
                 where += " AND (nro_comprobante LIKE :filtro OR observaciones LIKE :filtro)";
             }
@@ -786,9 +786,9 @@ public class DAOVenta {
                     + " COALESCE(SUM(CASE WHEN forma_pago='TRANSFERENCIA' THEN total ELSE 0 END),0)  AS total_transferencia, "
                     + " COALESCE(SUM(total),0)                                                      AS total_ventas, "
                     + " COALESCE(SUM(CASE WHEN forma_pago='EFECTIVO' THEN 1 ELSE 0 END),0)          AS cant_efectivo, "
-                    + " COALESCE(SUM(CASE WHEN forma_pago='TRANSFERENCIA' THEN 1 ELSE 0 END),0)     AS cant_transferencia, "
-                    + " COUNT(*)                                                                     AS cant_ventas "
-                    + "FROM Venta" + where;
+                    + " COALESCE(SUM(CASE WHEN forma_pago='TRANSFERENCIA' THEN 1 ELSE 0 END),0)     AS cant_transferencia "
+ //                   + " COUNT(*)                                                                     AS cant_ventas "
+                    + " FROM Venta v" + where;
 
             Query q = con.createQuery(sql);
             if (filtro != null && !filtro.isEmpty()) {
@@ -807,15 +807,13 @@ public class DAOVenta {
 
             Integer cantEfec = row == null ? 0 : (row.getInteger("cant_efectivo") == null ? 0 : row.getInteger("cant_efectivo"));
             Integer cantTrans = row == null ? 0 : (row.getInteger("cant_transferencia") == null ? 0 : row.getInteger("cant_transferencia"));
-            Integer cantVent = row == null ? 0 : (row.getInteger("cant_ventas") == null ? 0 : row.getInteger("cant_ventas"));
-
+            
             r.put("total_efectivo", totalEfec);
             r.put("total_transferencia", totalTrans);
             r.put("total_ventas", totalVent);
             r.put("cant_efectivo", cantEfec);
             r.put("cant_transferencia", cantTrans);
-            r.put("cant_ventas", cantVent);
-
+            
             return r;
 
         } catch (Exception e) {

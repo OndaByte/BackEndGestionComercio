@@ -296,8 +296,6 @@ public class DAOCaja implements DAOInterface<Caja> {
      */
     public HashMap<String, Object> filtrarSesionesCajaOP(String desde,
             String hasta,
-            Integer cajaId,
-            Integer cajeroId,
             String estado,
             Integer pagina,
             Integer tamPag) {
@@ -310,33 +308,30 @@ public class DAOCaja implements DAOInterface<Caja> {
                 + " s.apertura AS sapertura, "
                 + " s.cierre AS scierre, "
                 + " s.cajero_id AS scajero_id, "
-                + " s.caja_id AS scaja_id, "
-                + " COALESCE(ms.total_ingresos,0) AS smov_ingresos, "
-                + " COALESCE(ms.total_egresos,0) AS smov_egresos, "
-                + " COALESCE(ms.total_ingresos,0) - COALESCE(ms.total_egresos,0) AS smov_saldo ";
+                + " s.caja_id AS scaja_id ";
 
         String from
-                = " FROM SesionCaja s "
-                + " LEFT JOIN ( "
-                + "   SELECT sesion_caja_id, "
-                + "          SUM(CASE WHEN tipo_mov IN ('VENTA','INGRESO') THEN total ELSE 0 END) AS total_ingresos, "
-                + "          SUM(CASE WHEN tipo_mov = 'EGRESO' THEN total ELSE 0 END) AS total_egresos "
-                + "   FROM Movimiento "
-                + "   WHERE estado = 'ACTIVO' "
-                + "   GROUP BY sesion_caja_id "
-                + " ) ms ON ms.sesion_caja_id = s.id ";
+                = " FROM SesionCaja s ";
+//                + " LEFT JOIN ( "
+//                + "   SELECT sesion_caja_id, "
+//                + "          SUM(CASE WHEN tipo_mov IN ('VENTA','INGRESO') THEN total ELSE 0 END) AS total_ingresos, "
+//                + "          SUM(CASE WHEN tipo_mov = 'EGRESO' THEN total ELSE 0 END) AS total_egresos "
+//                + "   FROM Movimiento "
+//                + "   WHERE estado = 'ACTIVO' "
+//                + "   GROUP BY sesion_caja_id "
+//                + " ) ms ON ms.sesion_caja_id = s.id ";
 
         String where = " WHERE 1=1 ";
 
         if (desde != null && hasta != null) {
             where += " AND (s.apertura BETWEEN :desde AND :hasta) ";
         }
-        if (cajaId != null) {
-            where += " AND s.caja_id = :cajaId ";
-        }
-        if (cajeroId != null) {
-            where += " AND s.cajero_id = :cajeroId ";
-        }
+//        if (cajaId != null) {
+//            where += " AND s.caja_id = :cajaId ";
+//        }
+//        if (cajeroId != null) {
+//            where += " AND s.cajero_id = :cajeroId ";
+//        }
         if (estado != null) {
             if ("ABIERTA".equalsIgnoreCase(estado)) {
                 where += " AND s.cierre IS NULL ";
@@ -361,12 +356,12 @@ public class DAOCaja implements DAOInterface<Caja> {
             if (desde != null && hasta != null) {
                 countSql += " AND (s.apertura BETWEEN :desde AND :hasta) ";
             }
-            if (cajaId != null) {
-                countSql += " AND s.caja_id = :cajaId ";
-            }
-            if (cajeroId != null) {
-                countSql += " AND s.cajero_id = :cajeroId ";
-            }
+//            if (cajaId != null) {
+//                countSql += " AND s.caja_id = :cajaId ";
+//            }
+//            if (cajeroId != null) {
+//                countSql += " AND s.cajero_id = :cajeroId ";
+//            }
             if (estado != null) {
                 if ("ABIERTA".equalsIgnoreCase(estado)) {
                     countSql += " AND s.cierre IS NULL ";
@@ -386,14 +381,14 @@ public class DAOCaja implements DAOInterface<Caja> {
                 dq.addParameter("desde", desdeTs);
                 dq.addParameter("hasta", hastaTs);
             }
-            if (cajaId != null) {
-                cq.addParameter("cajaId", cajaId);
-                dq.addParameter("cajaId", cajaId);
-            }
-            if (cajeroId != null) {
-                cq.addParameter("cajeroId", cajeroId);
-                dq.addParameter("cajeroId", cajeroId);
-            }
+//            if (cajaId != null) {
+//                cq.addParameter("cajaId", cajaId);
+//                dq.addParameter("cajaId", cajaId);
+//            }
+//            if (cajeroId != null) {
+//                cq.addParameter("cajeroId", cajeroId);
+//                dq.addParameter("cajeroId", cajeroId);
+//            }
 
             Integer totalElementos = cq.executeAndFetchFirst(Integer.class);
             Integer totalPaginas = (int) Math.ceil((double) totalElementos / tamPag);
@@ -440,23 +435,8 @@ public class DAOCaja implements DAOInterface<Caja> {
                 s.setCajero_id(row.getInteger("scajero_id"));
                 s.setCaja_id(row.getInteger("scaja_id"));
 
-                Float ingresos = row.getFloat("smov_ingresos");
-                Float egresos = row.getFloat("smov_egresos");
-                Float saldo = row.getFloat("smov_saldo");
-
                 HashMap<String, Object> fila = new HashMap<>();
                 fila.put("sesion", s);
-                fila.put("ingresos", ingresos);
-                fila.put("egresos", egresos);
-                fila.put("saldo", saldo);
-
-                // Opcional: esperado_final = monto_inicial + ingresos - egresos
-                if (s.getMonto_inicial() != null) {
-                    Float esperadoFinal = (s.getMonto_inicial() != null ? s.getMonto_inicial() : 0f)
-                            + (ingresos != null ? ingresos : 0f)
-                            - (egresos != null ? egresos : 0f);
-                    fila.put("esperado_final", esperadoFinal);
-                }
 
                 filas.add(fila);
             }
@@ -712,18 +692,39 @@ public class DAOCaja implements DAOInterface<Caja> {
                 where += " AND (s.caja_id = :filtroNum OR s.cajero_id = :filtroNum) ";
             }
 
-            String sql
-                    = "SELECT "
-                    + "  COUNT(*)                                                    AS t_sesiones, "
-                    + "  SUM(CASE WHEN s.cierre IS NULL THEN 1 ELSE 0 END)          AS t_abiertas, "
-                    + "  SUM(CASE WHEN s.cierre IS NOT NULL THEN 1 ELSE 0 END)      AS t_cerradas, "
-                    + "  COALESCE(SUM(s.monto_inicial), 0)                          AS monto_inicial_total, "
-                    + "  COALESCE(SUM(s.monto_final),   0)                          AS monto_final_total, "
-                    + "  AVG(s.monto_inicial)                                       AS promedio_monto_inicial, "
-                    + "  AVG(s.monto_final)                                         AS promedio_monto_final, "
-                    + "  MIN(s.apertura)                                            AS primera_apertura, "
-                    + "  MAX(COALESCE(s.cierre, s.apertura))                        AS ultima_actividad "
-                    + "FROM SesionCaja s " + where;
+//                    = "SELECT "
+//                    + "  COUNT(*)                                                    AS t_sesiones, "
+//                    + "  SUM(CASE WHEN s.cierre IS NULL THEN 1 ELSE 0 END)          AS t_abiertas, "
+//                    + "  SUM(CASE WHEN s.cierre IS NOT NULL THEN 1 ELSE 0 END)      AS t_cerradas, "
+//                    + "  COALESCE(SUM(s.monto_inicial), 0)                          AS monto_inicial_total, "
+//                    + "  COALESCE(SUM(s.monto_final),   0)                          AS monto_final_total, "
+//                    + "  AVG(s.monto_inicial)                                       AS promedio_monto_inicial, "
+//                    + "  AVG(s.monto_final)                                         AS promedio_monto_final, "
+//                    + "  MIN(s.apertura)                                            AS primera_apertura, "
+//                    + "  MAX(COALESCE(s.cierre, s.apertura))                        AS ultima_actividad "
+//                    + "FROM SesionCaja s " + where;
+
+            String sql = "SELECT " 
+                + "  COUNT(*) AS t_sesiones, " 
+                + "  SUM(CASE WHEN s.cierre IS NULL THEN 1 ELSE 0 END) AS t_abiertas, " 
+                + "  SUM(CASE WHEN s.cierre IS NOT NULL THEN 1 ELSE 0 END) AS t_cerradas, " 
+                + "  COALESCE(SUM(s.monto_inicial),0) AS monto_inicial_total, " 
+                + "  COALESCE(SUM(s.monto_final),0)  AS monto_final_total, " 
+                + "  AVG(s.monto_inicial) AS promedio_monto_inicial, " 
+                + "  AVG(s.monto_final)   AS promedio_monto_final, " 
+                + "  MIN(s.apertura) AS primera_apertura, " 
+                + "  MAX(COALESCE(s.cierre, s.apertura)) AS ultima_actividad, " 
+                + "  COALESCE(SUM(CASE " 
+                + "     WHEN s.cierre IS NOT NULL AND s.monto_final IS NOT NULL " 
+                + "     THEN (s.monto_final - s.monto_inicial) ELSE 0 END), 0) "
+                + "  AS diferencia_total_cerradas, " 
+                + "  COALESCE(AVG(CASE " 
+                + "     WHEN s.cierre IS NOT NULL AND s.monto_final IS NOT NULL " 
+                + "     THEN (s.monto_final - s.monto_inicial) END), 0) "
+                + "  AS diferencia_promedio_cerradas, " 
+                + "  COALESCE(SUM(CASE WHEN s.cierre IS NOT NULL THEN s.monto_inicial ELSE 0 END),0) AS monto_inicial_total_cerradas, " 
+                + "  COALESCE(SUM(CASE WHEN s.cierre IS NOT NULL THEN s.monto_final   ELSE 0 END),0) AS monto_final_total_cerradas " 
+                + " FROM SesionCaja s " + where;
 
             Query q = con.createQuery(sql);
 
@@ -760,6 +761,11 @@ public class DAOCaja implements DAOInterface<Caja> {
             Float promMontoInicial = r.getFloat("promedio_monto_inicial");
             Float promMontoFinal = r.getFloat("promedio_monto_final");
 
+            Float difTotCerr = r.getFloat("diferencia_total_cerradas");
+            Float difAvgCerr = r.getFloat("diferencia_promedio_cerradas");
+            Float iniTotCerr = r.getFloat("monto_inicial_total_cerradas");
+            Float finTotCerr = r.getFloat("monto_final_total_cerradas");
+
             String primeraApertura = r.getString("primera_apertura");
             String ultimaActividad = r.getString("ultima_actividad");
 
@@ -773,7 +779,11 @@ public class DAOCaja implements DAOInterface<Caja> {
             response.put("promedio_monto_final", promMontoFinal == null ? 0f : promMontoFinal);
             response.put("primera_apertura", primeraApertura);
             response.put("ultima_actividad", ultimaActividad);
-
+            response.put("diferencia_total_cerradas", difTotCerr == null ? 0f : difTotCerr);
+            response.put("diferencia_promedio_cerradas", difAvgCerr == null ? 0f : difAvgCerr);
+            response.put("monto_inicial_total_cerradas", iniTotCerr == null ? 0f : iniTotCerr);
+            response.put("monto_final_total_cerradas",   finTotCerr == null ? 0f : finTotCerr);
+            
             return response;
 
         } catch (Exception e) {
@@ -787,7 +797,7 @@ public class DAOCaja implements DAOInterface<Caja> {
         return null;
     }
 
-    public HashMap<String, Object> resumenCaja(String filtro, String desde, String hasta) {
+    public HashMap<String, Object> resumenMovimientosCaja(String filtro, String desde, String hasta) {
         Connection con = null;
         HashMap<String, Object> response = new HashMap<>();
         try {

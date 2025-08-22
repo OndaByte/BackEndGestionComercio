@@ -61,8 +61,10 @@ public class App {
                             put("/{id}",CajaControlador::cerrar);
                             get(CajaControlador::filtrar);
                             //  get("/{id}",CajaControlador::movimientosCaja);
+                            get("/movimientos/resumen",CajaControlador::resumenMovimientosCaja);
                             get("/movimientos",CajaControlador::movimientosCajaOP);
-                            get("/resumen",CajaControlador::resumenCaja);
+                            get("/sesiones",CajaControlador::filtrarDetalladoOP);
+                            get("/resumen",CajaControlador::resumenSesionesCaja);
 //                            get("/ultimaCaja",CajaControlador::ultimaCaja);
                             
                         });
@@ -165,8 +167,8 @@ public class App {
                             put("/{id}",VentaControlador::editar);
                             get(VentaControlador::filtrarDetalladoPaginado);
                             put("/{id}/actualizar",VentaControlador::actualizar);
+                            get("/resumen",VentaControlador::resumenVenta);
                             get("/{id}",VentaControlador::buscarDetallado);
-                        
                         });
                     });
                 
