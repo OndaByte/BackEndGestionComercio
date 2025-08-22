@@ -21,6 +21,13 @@ INSERT INTO Permiso (nombre) VALUES
 ('MOVIMIENTO_BAJA'),
 ('MOVIMIENTO_LISTAR'),
 ('MOVIMIENTO_MODIFICAR'),
+('SESION_CAJA_LISTAR'),
+('SESION_CAJA_X1'),
+('SESION_CAJA_X2'),
+('VENTA_ALTA'),
+('VENTA_BAJA'),
+('VENTA_LISTAR'),
+('VENTA_MODIFICAR'),
 ('CLIENTE_ALTA'),
 ('CLIENTE_BAJA'),
 ('CLIENTE_LISTAR'),
@@ -78,12 +85,19 @@ INSERT INTO RolPermiso (rol_id, permiso_id) VALUES
 (1, 32),
 (1, 33),
 (1, 34),
+(1, 35),
+(1, 36),
+(1, 37),
+(1, 38),
+(1, 39),
+(1, 40),
+(1, 41),
 (2, 1), -- Vendedor abre caja
 (2, 3), -- Vendedor hace venta
 (2, 7), -- Vendedor puede ver y buscar categorias
-(2, 29), -- Vendedor puede ver y buscar productos
-(2, 34), -- Vendedor puede cambiar su contra
-(3, 34); -- Usuario puede cambiar su contra
+(2, 36), -- Vendedor puede ver y buscar productos
+(2, 41), -- Vendedor puede cambiar su contra
+(3, 41); -- Usuario puede cambiar su contra
 
 INSERT INTO Usuario
 (estado,usuario,contra)
