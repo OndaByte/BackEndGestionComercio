@@ -245,7 +245,8 @@ CREATE TABLE ItemVenta (
 
     venta_id INT NOT NULL, 
     producto_id INT NOT NULL,
-
+    producto_precio DECIMAL(10,2) NOT NULL,
+    
     nombre VARCHAR(100) NOT NULL,    
     cantidad INT NULL,
     porcentaje_descuento INT DEFAULT 0,

@@ -258,6 +258,7 @@ public class VentaControlador {
                 ItemVenta iv = new ItemVenta();
                 iv.setNombre(itemObj.getString("nombre"));
                 iv.setProducto_id(itemObj.getInt("producto_id"));
+                iv.setProducto_precio(itemObj.getFloat("producto_precio"));
                 iv.setSubtotal(itemObj.getFloat("subtotal"));
                 iv.setPorcentaje_descuento(itemObj.getInt("porcentaje_descuento"));
                 iv.setCantidad(itemObj.optInt("cantidad",1));

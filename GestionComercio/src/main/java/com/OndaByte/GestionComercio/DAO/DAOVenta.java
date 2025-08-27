@@ -210,8 +210,8 @@ public class DAOVenta {
                 = "DELETE FROM ItemVenta WHERE venta_id = :venta_id";
 
         final String insertItem
-                = "INSERT INTO ItemVenta (venta_id,producto_id, nombre, cantidad, porcentaje_descuento, subtotal) "
-                + "VALUES (:venta_id, :producto_id, :nombre, :cantidad, :porcentaje_descuento, :subtotal)";
+                = "INSERT INTO ItemVenta (venta_id,producto_id, producto_precio, nombre, cantidad, porcentaje_descuento, subtotal) "
+                + "VALUES (:venta_id, :producto_id, :producto_precio, :nombre, :cantidad, :porcentaje_descuento, :subtotal)";
 
         // Borrar
         con.createQuery(deleteItems)
@@ -223,6 +223,7 @@ public class DAOVenta {
             con.createQuery(insertItem)
                     .addParameter("venta_id", ventaId)
                     .addParameter("producto_id", item.getProducto_id())
+                    .addParameter("producto_precio", item.getProducto_precio())
                     .addParameter("nombre", item.getNombre())
                     .addParameter("cantidad", item.getCantidad())
                     .addParameter("porcentaje_descuento", item.getPorcentaje_descuento())
@@ -550,7 +551,7 @@ public class DAOVenta {
                 + " v.movimiento_id AS vmovimiento_id, "
                 + " v.cliente_id AS vcliente_id, "
                 + " v.subtotal AS vsubtotal, "
-                + " v.porcentaje_descuento AS vporc_descuento, "
+                + " v.porcentaje_descuento AS vporcentaje_descuento, "
                 + " v.total AS vtotal, "
                 + " v.forma_pago AS vforma_pago, "
                 + " v.punto_venta AS vpunto_venta, "
@@ -580,6 +581,8 @@ public class DAOVenta {
                 + " iv.ultMod AS ivultMod, "
                 + " iv.estado AS ivestado, "
                 + " iv.nombre AS ivnombre, "
+                + " iv.producto_id AS ivproducto_id, "
+                + " iv.producto_precio AS ivproducto_precio, "
                 + " iv.porcentaje_descuento AS ivporcentaje_descuento, "
                 + " iv.subtotal AS ivsubtotal, "
                 + " iv.cantidad AS ivcantidad "
@@ -627,7 +630,7 @@ public class DAOVenta {
                     v.setMovimiento_id(row.getInteger("vmovimiento_id"));
                     v.setCliente_id(row.getInteger("vcliente_id"));
                     v.setSubtotal(row.getFloat("vsubtotal"));
-                    v.setPorcentaje_descuento(row.getInteger("vporc_descuento"));
+                    v.setPorcentaje_descuento(row.getInteger("vporcentaje_descuento"));
                     v.setTotal(row.getFloat("vtotal"));
                     v.setForma_pago(row.getString("vforma_pago"));
                     v.setPunto_venta(row.getString("vpunto_venta"));
@@ -666,6 +669,7 @@ public class DAOVenta {
                 iv.setCreado(row.getString("ivcreado"));
                 iv.setUltMod(row.getString("ivultMod"));
                 iv.setEstado(row.getString("ivestado"));
+                iv.setProducto_precio(row.getFloat("ivproducto_precio"));
                 iv.setNombre(row.getString("ivnombre"));
                 iv.setCantidad(row.getInteger("ivcantidad"));
                 iv.setSubtotal(row.getFloat("ivsubtotal"));
