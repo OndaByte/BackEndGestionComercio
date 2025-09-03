@@ -245,7 +245,8 @@ CREATE TABLE ItemVenta (
 
     venta_id INT NOT NULL, 
     producto_id INT NOT NULL,
-
+    producto_precio DECIMAL(10,2) NOT NULL,
+    
     nombre VARCHAR(100) NOT NULL,    
     cantidad INT NULL,
     porcentaje_descuento INT DEFAULT 0,
@@ -260,6 +261,9 @@ DROP TRIGGER IF EXISTS alta_sesion_valida;
 DROP TRIGGER IF EXISTS actualizar_total_cerrar_sesion;
 DROP TRIGGER IF EXISTS alta_movimiento_valido;
 DROP TRIGGER IF EXISTS alta_movimiento_gasto;
+DROP TRIGGER IF EXISTS alta_movimiento_venta;
+DROP TRIGGER IF EXISTS actualiza_movimiento_venta_descr;
+DROP TRIGGER IF EXISTS descontar_stock_venta;
 
 DELIMITER $$
 CREATE TRIGGER nueva_sesion_caja
@@ -370,7 +374,7 @@ BEGIN
 END;
 
 
-CREATE TRIGGER alta_movimiento_venta
+CREATE TRIGGER alta_movimiento_venta 
 BEFORE INSERT ON Venta
 FOR EACH ROW
 BEGIN
@@ -397,6 +401,16 @@ BEGIN
         SET MESSAGE_TEXT = 'No se puede registrar la venta: no hay sesión de caja abierta.';
     END IF;
 END;
+
+CREATE TRIGGER actualiza_movimiento_venta_descr
+AFTER INSERT ON Venta
+FOR EACH ROW
+BEGIN
+    UPDATE Movimiento
+    SET descripcion = CONCAT('Venta ', NEW.id)
+    WHERE id = NEW.movimiento_id;
+END$$
+
 
 CREATE TRIGGER descontar_stock_venta
 BEFORE INSERT ON ItemVenta
